@@ -19,6 +19,8 @@ import {
   EvaluationDashboardItem,
   StudentAttemptEvaluationSession,
   StudentQuestionEvaluationItem,
+  AttachmentEvaluationRecord,
+  VisualAnnotationMark,
 } from '../types';
 
 // -------------------------------------------------------------
@@ -1755,3 +1757,129 @@ export const mockStudentEvaluationAttempt: StudentAttemptEvaluationSession = {
     },
   ],
 };
+
+// -------------------------------------------------------------
+// Prototype 24: Mock Attachment Evaluation Records (PRD Section 28)
+// -------------------------------------------------------------
+export const mockAttachmentEvaluationRecords: AttachmentEvaluationRecord[] = [
+  {
+    id: 'att-rec-1',
+    submissionId: 'sub-101',
+    questionId: 'q-eval-6',
+    questionNumber: 6,
+    questionText:
+      'State and prove Thales Theorem (Basic Proportionality Theorem). Upload your complete handwritten geometrical diagram, construction steps, and triangle ratio proof.',
+    sectionName: 'Section D: Attachment Submission',
+    examId: 'exam-101',
+    examName: 'Grade 10 Mathematics Midterm 2026',
+    examCode: 'QP-MATH-101',
+    studentId: 's-4',
+    studentName: 'Diya Sen',
+    rollNo: '1004',
+    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+    classDivisionLabel: 'Grade 10 - Division A',
+    submissionDate: '10 Aug 2026, 09:58 AM',
+    fileInfo: {
+      fileName: 'Diya_Sen_Thales_Theorem_Proof_Handwritten.pdf',
+      fileSize: '2.4 MB',
+      fileUrl: '/assets/sample_handwritten_proof.pdf',
+      fileType: 'application/pdf',
+      pageCount: 3,
+      uploadedAt: '10 Aug 2026, 09:55 AM',
+    },
+    downloadPermitted: true,
+    maxMarks: 35,
+    awardedMarks: 32,
+    teacherRemarks: 'Crisp geometrical construction and clear area ratio steps. Excellent work.',
+    rubrics: [
+      { id: 'r1', criterion: 'Theorem Statement & Labelled Diagram', maxScore: 10, awardedScore: 9 },
+      { id: 'r2', criterion: 'Auxiliary Construction Lines', maxScore: 10, awardedScore: 9 },
+      { id: 'r3', criterion: 'Triangle Area Ratio Algebra', maxScore: 15, awardedScore: 14 },
+    ],
+    annotations: [
+      { id: 'ann-1', type: 'checkmark', xPct: 28, yPct: 32, pageNumber: 1, createdAt: '10 Aug 10:15 AM' },
+      { id: 'ann-2', type: 'checkmark', xPct: 65, yPct: 48, pageNumber: 1, createdAt: '10 Aug 10:16 AM' },
+      { id: 'ann-3', type: 'comment', xPct: 75, yPct: 25, pageNumber: 1, commentText: 'Clean construction of perpendicular height DM!', createdAt: '10 Aug 10:17 AM' },
+    ],
+  },
+  {
+    id: 'att-rec-2',
+    submissionId: 'sub-102',
+    questionId: 'q-eval-6',
+    questionNumber: 6,
+    questionText:
+      'State and prove Thales Theorem (Basic Proportionality Theorem). Upload your complete handwritten geometrical diagram, construction steps, and triangle ratio proof.',
+    sectionName: 'Section D: Attachment Submission',
+    examId: 'exam-101',
+    examName: 'Grade 10 Mathematics Midterm 2026',
+    examCode: 'QP-MATH-101',
+    studentId: 's-1',
+    studentName: 'Aarav Sharma',
+    rollNo: '1001',
+    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+    classDivisionLabel: 'Grade 10 - Division A',
+    submissionDate: '10 Aug 2026, 10:45 AM',
+    fileInfo: {
+      fileName: 'Aarav_Sharma_Geometry_Submission.jpg',
+      fileSize: '1.8 MB',
+      fileUrl: '/assets/sample_geometry_photo.jpg',
+      fileType: 'image/jpeg',
+      pageCount: 1,
+      uploadedAt: '10 Aug 2026, 10:42 AM',
+    },
+    downloadPermitted: true,
+    maxMarks: 35,
+    awardedMarks: 28,
+    teacherRemarks: 'Proof is logical, but missing explicit label for perpendicular height EN.',
+    rubrics: [
+      { id: 'r1', criterion: 'Theorem Statement & Labelled Diagram', maxScore: 10, awardedScore: 8 },
+      { id: 'r2', criterion: 'Auxiliary Construction Lines', maxScore: 10, awardedScore: 7 },
+      { id: 'r3', criterion: 'Triangle Area Ratio Algebra', maxScore: 15, awardedScore: 13 },
+    ],
+    annotations: [
+      { id: 'ann-4', type: 'checkmark', xPct: 30, yPct: 40, pageNumber: 1, createdAt: '10 Aug 11:05 AM' },
+      { id: 'ann-5', type: 'cross', xPct: 62, yPct: 58, pageNumber: 1, createdAt: '10 Aug 11:06 AM' },
+      { id: 'ann-6', type: 'comment', xPct: 65, yPct: 62, pageNumber: 1, commentText: 'Specify EN ⊥ AC in diagram.', createdAt: '10 Aug 11:07 AM' },
+    ],
+  },
+  {
+    id: 'att-rec-3',
+    submissionId: 'sub-108',
+    questionId: 'q-phy-4',
+    questionNumber: 4,
+    questionText:
+      'Upload handwritten experimental schematic and ray tracing derivation for Young’s Double Slit Interference fringe width.',
+    sectionName: 'Section B: Theory & Experimental Derivation',
+    examId: 'exam-102',
+    examName: 'Grade 12 Quantum Physics Final 2026',
+    examCode: 'QP-PHY-202',
+    studentId: 's-1201',
+    studentName: 'Siddharth Joshi',
+    rollNo: '1201',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+    classDivisionLabel: 'Grade 12 - Division A',
+    submissionDate: '11 Aug 2026, 11:30 AM',
+    fileInfo: {
+      fileName: 'Siddharth_WaveOptics_Interference_Derivation.pdf',
+      fileSize: '3.1 MB',
+      fileUrl: '/assets/sample_physics_derivation.pdf',
+      fileType: 'application/pdf',
+      pageCount: 2,
+      uploadedAt: '11 Aug 2026, 11:28 AM',
+    },
+    downloadPermitted: false,
+    downloadRestrictionReason: 'Official Exam Security Protocol: Downloading locked by institution administrator.',
+    maxMarks: 40,
+    awardedMarks: 38,
+    teacherRemarks: 'Outstanding path difference derivation and fringe width expression β = λD/d.',
+    rubrics: [
+      { id: 'r1', criterion: 'Optical Diagram & Ray Paths', maxScore: 10, awardedScore: 10 },
+      { id: 'r2', criterion: 'Path Difference Δx Derivation', maxScore: 15, awardedScore: 14 },
+      { id: 'r3', criterion: 'Fringe Width β Formula', maxScore: 15, awardedScore: 14 },
+    ],
+    annotations: [
+      { id: 'ann-7', type: 'checkmark', xPct: 45, yPct: 28, pageNumber: 1, createdAt: '11 Aug 12:10 PM' },
+      { id: 'ann-8', type: 'comment', xPct: 50, yPct: 35, pageNumber: 1, commentText: 'Excellent approximation S₂P - S₁P ≈ xd/D!', createdAt: '11 Aug 12:12 PM' },
+    ],
+  },
+];

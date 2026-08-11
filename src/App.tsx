@@ -22,6 +22,7 @@ import { PdfQuestionPaperSetupView } from './views/PdfQuestionPaperSetupView';
 import { AnswerSubmissionConfigView } from './views/AnswerSubmissionConfigView';
 import { EvaluationDashboardView } from './views/EvaluationDashboardView';
 import { AnswerEvaluationView } from './views/AnswerEvaluationView';
+import { AttachmentEvaluationView } from './views/AttachmentEvaluationView';
 
 // Parent & Student Views
 import { ParentDashboardView } from './views/ParentDashboardView';
@@ -80,6 +81,7 @@ const MainContent: React.FC = () => {
           {activeTab === 'assessment' && <AssessmentView />}
           {activeTab === 'evaluation-dashboard' && <EvaluationDashboardView />}
           {activeTab === 'answer-evaluation' && <AnswerEvaluationView />}
+          {activeTab === 'attachment-evaluation' && <AttachmentEvaluationView />}
           {activeTab === 'publish-results' && <PublishResultsView />}
           {activeTab === 'settings' && <SettingsView />}
 

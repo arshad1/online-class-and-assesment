@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   LayoutDashboard,
   CalendarClock,
@@ -15,6 +14,7 @@ import {
   Sparkles,
   Play,
   FileText,
+  Paperclip,
   UserCheck,
 } from 'lucide-react';
 import { useExam } from '../../context/ExamContext';
@@ -29,6 +29,7 @@ export const Sidebar: React.FC = () => {
     monitoringStudents,
     studentSubmissions,
     evaluationDashboardItems,
+    attachmentRecords,
     parentAccount,
     selectedChild,
     setSelectedChildId,
@@ -67,6 +68,13 @@ export const Sidebar: React.FC = () => {
       id: 'answer-evaluation',
       label: 'Answer Evaluation (P23)',
       icon: <FileText className="w-4 h-4" />,
+    },
+    {
+      id: 'attachment-evaluation',
+      label: 'Attachment Evaluation (P24)',
+      icon: <Paperclip className="w-4 h-4" />,
+      badge: attachmentRecords.length,
+      badgeColor: 'bg-purple-600 text-white',
     },
     {
       id: 'assessment',

@@ -200,7 +200,8 @@ export type ActiveNavTab =
   | 'create-exam-controls'
   | 'student-exam-portal'
   | 'evaluation-dashboard'
-  | 'answer-evaluation';
+  | 'answer-evaluation'
+  | 'attachment-evaluation';
 
 export interface ExamBasicDetailsFormData {
   examName: string;
@@ -635,6 +636,54 @@ export interface StudentAttemptEvaluationSession {
   passMarks: number;
   currentQuestionIndex: number;
   questions: StudentQuestionEvaluationItem[];
+}
+
+// -------------------------------------------------------------
+// Prototype 24 Attachment Evaluation Types (PRD Section 28)
+// -------------------------------------------------------------
+export type AnnotationToolType = 'checkmark' | 'cross' | 'highlight' | 'comment';
+
+export interface VisualAnnotationMark {
+  id: string;
+  type: AnnotationToolType;
+  xPct: number;
+  yPct: number;
+  pageNumber: number;
+  commentText?: string;
+  createdAt: string;
+}
+
+export interface AttachmentEvaluationRecord {
+  id: string;
+  submissionId: string;
+  questionId: string;
+  questionNumber: number;
+  questionText: string;
+  sectionName: string;
+  examId: string;
+  examName: string;
+  examCode: string;
+  studentId: string;
+  studentName: string;
+  rollNo: string;
+  avatar: string;
+  classDivisionLabel: string;
+  submissionDate: string;
+  fileInfo: {
+    fileName: string;
+    fileSize: string;
+    fileUrl: string;
+    fileType: string;
+    pageCount: number;
+    uploadedAt: string;
+  };
+  downloadPermitted: boolean;
+  downloadRestrictionReason?: string;
+  maxMarks: number;
+  awardedMarks: number;
+  teacherRemarks: string;
+  rubrics?: RubricCriterionScore[];
+  annotations: VisualAnnotationMark[];
 }
 
 export interface GradeRule {

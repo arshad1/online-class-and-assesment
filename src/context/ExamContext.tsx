@@ -30,6 +30,9 @@ import {
   PRDEvaluationStatus,
   StudentAttemptEvaluationSession,
   StudentQuestionEvaluationItem,
+  AttachmentEvaluationRecord,
+  VisualAnnotationMark,
+  AnnotationToolType,
 } from '../types';
 import {
   mockStudents as initialStudents,
@@ -48,6 +51,7 @@ import {
   mockParentAccount as initialParentAccount,
   mockEvaluationDashboardItems,
   mockStudentEvaluationAttempt,
+  mockAttachmentEvaluationRecords,
 } from '../data/mockData';
 
 export interface ToastMessage {
@@ -175,6 +179,15 @@ interface ExamContextType {
   updateQuestionAwardedMarks: (questionId: string, marks: number, remarks?: string) => void;
   navigateAttemptQuestion: (target: 'next' | 'prev' | number) => void;
   completeAttemptEvaluation: () => void;
+
+  // Prototype 24 Attachment Evaluation State (PRD Section 28)
+  attachmentRecords: AttachmentEvaluationRecord[];
+  activeAttachmentIndex: number;
+  setActiveAttachmentIndex: (index: number) => void;
+  updateAttachmentMarksAndRemarks: (recordId: string, marks: number, remarks: string) => void;
+  addVisualAnnotationMark: (recordId: string, annotation: Omit<VisualAnnotationMark, 'id' | 'createdAt'>) => void;
+  clearVisualAnnotations: (recordId: string) => void;
+  navigateAttachmentRecord: (target: 'next' | 'prev' | number) => void;
 
   // Selection & Modal State
   selectedStudentForDrawer: MonitoringStudent | null;
@@ -470,6 +483,10 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Prototype 23 Answer Evaluation State
   const [activeEvaluationAttempt, setActiveEvaluationAttempt] = useState<StudentAttemptEvaluationSession>(mockStudentEvaluationAttempt);
+
+  // Prototype 24 Attachment Evaluation State
+  const [attachmentRecords, setAttachmentRecords] = useState<AttachmentEvaluationRecord[]>(mockAttachmentEvaluationRecords);
+  const [activeAttachmentIndex, setActiveAttachmentIndex] = useState<number>(0);
 
   // Modals & Selection
   const [selectedStudentForDrawer, setSelectedStudentForDrawer] = useState<MonitoringStudent | null>(null);
@@ -933,6 +950,67 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setActiveTab('evaluation-dashboard');
   };
 
+  // Prototype 24 Attachment Evaluation Methods
+  const updateAttachmentMarksAndRemarks = (recordId: string, marks: number, remarks: string) => {
+    setAttachmentRecords((prev) =>
+      prev.map((rec) => {
+        if (rec.id === recordId) {
+          const validMarks = Math.min(Math.max(0, marks), rec.maxMarks);
+          return { ...rec, awardedMarks: validMarks, teacherRemarks: remarks };
+        }
+        return rec;
+      })
+    );
+    addToast('Attachment Saved', 'Marks and remarks updated for attachment.', 'success');
+  };
+
+  const addVisualAnnotationMark = (
+    recordId: string,
+    annotation: Omit<VisualAnnotationMark, 'id' | 'createdAt'>
+  ) => {
+    const newMark: VisualAnnotationMark = {
+      ...annotation,
+      id: 'ann-' + Date.now() + '-' + Math.random().toString(36).substring(2, 5),
+      createdAt: 'Just now',
+    };
+
+    setAttachmentRecords((prev) =>
+      prev.map((rec) => {
+        if (rec.id === recordId) {
+          return { ...rec, annotations: [...rec.annotations, newMark] };
+        }
+        return rec;
+      })
+    );
+  };
+
+  const clearVisualAnnotations = (recordId: string) => {
+    setAttachmentRecords((prev) =>
+      prev.map((rec) => {
+        if (rec.id === recordId) {
+          return { ...rec, annotations: [] };
+        }
+        return rec;
+      })
+    );
+    addToast('Annotations Cleared', 'Visual stamps removed from document canvas.', 'info');
+  };
+
+  const navigateAttachmentRecord = (target: 'next' | 'prev' | number) => {
+    setActiveAttachmentIndex((prev) => {
+      if (typeof target === 'number') {
+        return Math.min(Math.max(0, target), attachmentRecords.length - 1);
+      }
+      if (target === 'next') {
+        return Math.min(prev + 1, attachmentRecords.length - 1);
+      }
+      if (target === 'prev') {
+        return Math.max(prev - 1, 0);
+      }
+      return prev;
+    });
+  };
+
   return (
     <ExamContext.Provider
       value={{
@@ -1040,6 +1118,14 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateQuestionAwardedMarks,
         navigateAttemptQuestion,
         completeAttemptEvaluation,
+
+        attachmentRecords,
+        activeAttachmentIndex,
+        setActiveAttachmentIndex,
+        updateAttachmentMarksAndRemarks,
+        addVisualAnnotationMark,
+        clearVisualAnnotations,
+        navigateAttachmentRecord,
 
         selectedStudentForDrawer,
         setSelectedStudentForDrawer,
