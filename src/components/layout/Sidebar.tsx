@@ -15,6 +15,7 @@ import {
   Play,
   FileText,
   Paperclip,
+  Calculator,
   UserCheck,
 } from 'lucide-react';
 import { useExam } from '../../context/ExamContext';
@@ -59,22 +60,27 @@ export const Sidebar: React.FC = () => {
     },
     {
       id: 'evaluation-dashboard',
-      label: 'Evaluation Dashboard (P22)',
+      label: 'Evaluation Dashboard',
       icon: <ClipboardCheck className="w-4 h-4" />,
       badge: pendingEvaluationDashboardCount > 0 ? pendingEvaluationDashboardCount : undefined,
       badgeColor: 'bg-blue-600 text-white',
     },
     {
       id: 'answer-evaluation',
-      label: 'Answer Evaluation (P23)',
+      label: 'Answer Evaluation',
       icon: <FileText className="w-4 h-4" />,
     },
     {
       id: 'attachment-evaluation',
-      label: 'Attachment Evaluation (P24)',
+      label: 'Attachment Evaluation',
       icon: <Paperclip className="w-4 h-4" />,
       badge: attachmentRecords.length,
       badgeColor: 'bg-purple-600 text-white',
+    },
+    {
+      id: 'result-calculation-review',
+      label: 'Result Calculation',
+      icon: <Calculator className="w-4 h-4" />,
     },
     {
       id: 'assessment',

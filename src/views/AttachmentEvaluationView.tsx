@@ -118,7 +118,7 @@ export const AttachmentEvaluationView: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                  Prototype 24 — Attachment Evaluation
+                  Attachment Evaluation
                 </h1>
                 <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-purple-100 text-purple-800 border border-purple-200">
                   PRD Sec 28

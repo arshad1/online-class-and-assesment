@@ -33,6 +33,7 @@ import {
   AttachmentEvaluationRecord,
   VisualAnnotationMark,
   AnnotationToolType,
+  CandidateResultCalculationSummary,
 } from '../types';
 import {
   mockStudents as initialStudents,
@@ -52,6 +53,7 @@ import {
   mockEvaluationDashboardItems,
   mockStudentEvaluationAttempt,
   mockAttachmentEvaluationRecords,
+  mockCandidateResultSummary,
 } from '../data/mockData';
 
 export interface ToastMessage {
@@ -188,6 +190,12 @@ interface ExamContextType {
   addVisualAnnotationMark: (recordId: string, annotation: Omit<VisualAnnotationMark, 'id' | 'createdAt'>) => void;
   clearVisualAnnotations: (recordId: string) => void;
   navigateAttachmentRecord: (target: 'next' | 'prev' | number) => void;
+
+  // Prototype 25 Result Calculation & Review State (PRD Sections 29, 30)
+  candidateResultSummary: CandidateResultCalculationSummary;
+  setCandidateResultSummary: React.Dispatch<React.SetStateAction<CandidateResultCalculationSummary>>;
+  updatePassMarkThresholdPct: (newPassMarkPct: number) => void;
+  publishCandidateResultSummary: () => void;
 
   // Selection & Modal State
   selectedStudentForDrawer: MonitoringStudent | null;
@@ -487,6 +495,9 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Prototype 24 Attachment Evaluation State
   const [attachmentRecords, setAttachmentRecords] = useState<AttachmentEvaluationRecord[]>(mockAttachmentEvaluationRecords);
   const [activeAttachmentIndex, setActiveAttachmentIndex] = useState<number>(0);
+
+  // Prototype 25 Result Calculation & Review State
+  const [candidateResultSummary, setCandidateResultSummary] = useState<CandidateResultCalculationSummary>(mockCandidateResultSummary);
 
   // Modals & Selection
   const [selectedStudentForDrawer, setSelectedStudentForDrawer] = useState<MonitoringStudent | null>(null);
@@ -1011,6 +1022,28 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  // Prototype 25 Result Calculation & Review Methods
+  const updatePassMarkThresholdPct = (newPassMarkPct: number) => {
+    setCandidateResultSummary((prev) => {
+      const isPassed = prev.percentage >= newPassMarkPct;
+      return {
+        ...prev,
+        passMarkPercentage: newPassMarkPct,
+        isPassed,
+      };
+    });
+    addToast('Threshold Updated', `Minimum pass mark updated to ${newPassMarkPct}%.`, 'info');
+  };
+
+  const publishCandidateResultSummary = () => {
+    updateEvaluationDashboardItemStatus(
+      candidateResultSummary.submissionId === 'sub-101' ? 'eval-101' : candidateResultSummary.submissionId,
+      'Published'
+    );
+    addToast('Result Published!', `Official result for ${candidateResultSummary.studentName} is now live in student portal.`, 'success');
+    setActiveTab('evaluation-dashboard');
+  };
+
   return (
     <ExamContext.Provider
       value={{
@@ -1126,6 +1159,11 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addVisualAnnotationMark,
         clearVisualAnnotations,
         navigateAttachmentRecord,
+
+        candidateResultSummary,
+        setCandidateResultSummary,
+        updatePassMarkThresholdPct,
+        publishCandidateResultSummary,
 
         selectedStudentForDrawer,
         setSelectedStudentForDrawer,

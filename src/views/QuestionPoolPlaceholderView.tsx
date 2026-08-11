@@ -69,7 +69,7 @@ export const QuestionPoolPlaceholderView: React.FC = () => {
           <span className="inline-block px-2 py-0.5 rounded text-[10px] uppercase font-black bg-blue-100 text-blue-900">
             Existing Question Pool
           </span>
-          <p className="text-slate-600 font-medium">Ready for Prototype 06 Item Selection</p>
+          <p className="text-slate-600 font-medium">Ready for Item Selection</p>
         </div>
       </div>
 

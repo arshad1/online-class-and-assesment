@@ -385,7 +385,7 @@ export const QuestionBankBrowserView: React.FC = () => {
           }`}
         >
           <CheckSquare className="w-4 h-4 text-blue-600" />
-          <span>Manual Selection Mode (Prototype 07)</span>
+          <span>Manual Selection Mode</span>
         </button>
 
         <button
@@ -401,7 +401,7 @@ export const QuestionBankBrowserView: React.FC = () => {
           }`}
         >
           <Shuffle className="w-4 h-4 text-blue-300" />
-          <span>Random Selection Mode (Optional Prototype 08)</span>
+          <span>Random Selection Mode</span>
         </button>
       </div>
 

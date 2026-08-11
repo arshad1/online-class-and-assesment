@@ -378,7 +378,7 @@ export const QuestionSourceChoiceView: React.FC = () => {
               <div className="mt-6 pt-4 border-t border-blue-200/80 flex items-center justify-between text-xs font-extrabold text-blue-900">
                 <span>Next Step: Question Bank Selection</span>
                 <div className="flex items-center gap-1 text-blue-600">
-                  <span>Prototype 06</span>
+                  <span>Item Bank</span>
                   <ArrowRight className="w-4 h-4" />
                 </div>
               </div>
@@ -444,7 +444,7 @@ export const QuestionSourceChoiceView: React.FC = () => {
               <div className="mt-6 pt-4 border-t border-indigo-200/80 flex items-center justify-between text-xs font-extrabold text-indigo-900">
                 <span>Next Step: PDF Upload & Config</span>
                 <div className="flex items-center gap-1 text-indigo-600">
-                  <span>Prototype 09</span>
+                  <span>PDF Setup</span>
                   <ArrowRight className="w-4 h-4" />
                 </div>
               </div>

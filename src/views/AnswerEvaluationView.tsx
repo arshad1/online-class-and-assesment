@@ -92,7 +92,7 @@ export const AnswerEvaluationView: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                  Prototype 23 — Answer Evaluation
+                  Answer Evaluation
                 </h1>
                 <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-blue-100 text-blue-800 border border-blue-200">
                   PRD Sec 27 & 28

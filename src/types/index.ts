@@ -201,7 +201,8 @@ export type ActiveNavTab =
   | 'student-exam-portal'
   | 'evaluation-dashboard'
   | 'answer-evaluation'
-  | 'attachment-evaluation';
+  | 'attachment-evaluation'
+  | 'result-calculation-review';
 
 export interface ExamBasicDetailsFormData {
   examName: string;
@@ -684,6 +685,33 @@ export interface AttachmentEvaluationRecord {
   teacherRemarks: string;
   rubrics?: RubricCriterionScore[];
   annotations: VisualAnnotationMark[];
+}
+
+// -------------------------------------------------------------
+// Prototype 25 Result Calculation & Review Types (PRD Sections 29, 30)
+// -------------------------------------------------------------
+export interface CandidateResultCalculationSummary {
+  submissionId: string;
+  examId: string;
+  examName: string;
+  examCode: string;
+  studentId: string;
+  studentName: string;
+  rollNo: string;
+  avatar: string;
+  classDivisionLabel: string;
+  submissionDate: string;
+  totalMaxMarks: number;
+  obtainedObjectiveMarks: number;
+  obtainedSubjectiveMarks: number;
+  obtainedAttachmentMarks: number;
+  totalObtainedMarks: number;
+  percentage: number;
+  passMarkPercentage: number;
+  isPassed: boolean;
+  grade: string;
+  gradeLabel: string;
+  evaluatedQuestions: StudentQuestionEvaluationItem[];
 }
 
 export interface GradeRule {

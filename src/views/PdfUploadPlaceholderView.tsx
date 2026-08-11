@@ -69,7 +69,7 @@ export const PdfUploadPlaceholderView: React.FC = () => {
           <span className="inline-block px-2 py-0.5 rounded text-[10px] uppercase font-black bg-indigo-100 text-indigo-900">
             Upload Question Paper PDF
           </span>
-          <p className="text-slate-600 font-medium">Ready for Prototype 09 PDF Configuration</p>
+          <p className="text-slate-600 font-medium">Ready for PDF Configuration</p>
         </div>
       </div>
 

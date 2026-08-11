@@ -167,7 +167,7 @@ export const EvaluationDashboardView: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                  Prototype 22 — Evaluation Dashboard
+                  Teacher Evaluation Dashboard
                 </h1>
                 <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded bg-blue-100 text-blue-800 border border-blue-200">
                   PRD Sec 26
@@ -656,7 +656,7 @@ export const EvaluationDashboardView: React.FC = () => {
                               className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-xs transition-colors flex items-center gap-1"
                             >
                               <Play className="w-3 h-3 fill-current" />
-                              <span>Start Eval (P23)</span>
+                              <span>Start Evaluation</span>
                             </button>
                           )}
 
@@ -666,7 +666,7 @@ export const EvaluationDashboardView: React.FC = () => {
                               className="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg shadow-xs transition-colors flex items-center gap-1"
                             >
                               <CheckCircle2 className="w-3 h-3" />
-                              <span>Continue Eval (P23)</span>
+                              <span>Continue Evaluation</span>
                             </button>
                           )}
 
