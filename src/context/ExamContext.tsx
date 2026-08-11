@@ -242,6 +242,8 @@ interface ExamContextType {
 
   updateResultSettings: (settings: Partial<ResultSettings>) => void;
   publishExamResults: (examId: string, options: { notifyApp: boolean; notifyEmail: boolean; notifyParent: boolean }) => void;
+  unpublishExamResults: (examId: string) => void;
+  checkExamPublishBlocked: (examId: string) => EvaluationDashboardItem[];
 }
 
 const ExamContext = createContext<ExamContextType | undefined>(undefined);
@@ -870,10 +872,45 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const publishExamResults = (examId: string, options: { notifyApp: boolean; notifyEmail: boolean; notifyParent: boolean }) => {
     setStudentSubmissions((prev) =>
-      prev.map((sub) => (sub.examId === examId ? { ...sub, publishStatus: 'published' } : sub))
+      prev.map((sub) => (sub.examId === examId || examId === 'all' || !examId ? { ...sub, publishStatus: 'published' } : sub))
+    );
+    setEvaluationDashboardItems((prev) =>
+      prev.map((item) => {
+        if (item.examId === examId || examId === 'all' || !examId) {
+          return { ...item, evaluationStatus: 'Published' };
+        }
+        return item;
+      })
     );
     setShowPublishConfirmationModal(false);
-    addToast('Results Published!', 'Exam results are now published to student portal.', 'success');
+    addToast(
+      'Results Published Successfully!',
+      `Official result cards are now published and visible to students on their portal (${options.notifyApp ? 'Push' : ''}${options.notifyEmail ? ', Email' : ''}${options.notifyParent ? ', Parent SMS' : ''}).`,
+      'success'
+    );
+  };
+
+  const unpublishExamResults = (examId: string) => {
+    setStudentSubmissions((prev) =>
+      prev.map((sub) => (sub.examId === examId || examId === 'all' || !examId ? { ...sub, publishStatus: 'draft' } : sub))
+    );
+    setEvaluationDashboardItems((prev) =>
+      prev.map((item) => {
+        if (item.examId === examId || examId === 'all' || !examId) {
+          return { ...item, evaluationStatus: 'Completed' };
+        }
+        return item;
+      })
+    );
+    addToast('Results Recalled (Draft Status)', 'Results set back to draft mode. Marks hidden from student view.', 'info');
+  };
+
+  const checkExamPublishBlocked = (examId: string): EvaluationDashboardItem[] => {
+    return evaluationDashboardItems.filter(
+      (item) =>
+        (item.examId === examId || examId === 'all' || !examId) &&
+        (item.evaluationStatus === 'Not Started' || item.evaluationStatus === 'In Progress')
+    );
   };
 
   // Prototype 22 Evaluation Dashboard Methods
@@ -1207,6 +1244,8 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         updateResultSettings,
         publishExamResults,
+        unpublishExamResults,
+        checkExamPublishBlocked,
       }}
     >
       {children}
