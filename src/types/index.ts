@@ -199,7 +199,8 @@ export type ActiveNavTab =
   | 'create-exam-question-bank'
   | 'create-exam-controls'
   | 'student-exam-portal'
-  | 'evaluation-dashboard';
+  | 'evaluation-dashboard'
+  | 'answer-evaluation';
 
 export interface ExamBasicDetailsFormData {
   examName: string;
@@ -574,6 +575,66 @@ export interface EvaluationDashboardItem {
   percentage?: number;
   evaluator?: string;
   feedback?: string;
+}
+
+// -------------------------------------------------------------
+// Prototype 23 Answer Evaluation Types (PRD Sections 25, 27, 28)
+// -------------------------------------------------------------
+export type QuestionEvaluationType = 'auto_mcq' | 'manual_text' | 'manual_essay' | 'attachment';
+
+export interface RubricCriterionScore {
+  id: string;
+  criterion: string;
+  maxScore: number;
+  awardedScore: number;
+  description?: string;
+}
+
+export interface StudentQuestionEvaluationItem {
+  id: string;
+  questionNumber: number;
+  sectionName: string;
+  evaluationType: QuestionEvaluationType;
+  questionText: string;
+  maxMarks: number;
+  awardedMarks: number;
+  teacherRemarks: string;
+  isAutoEvaluated: boolean;
+  autoScoredStatus?: 'correct' | 'incorrect' | 'partially_correct';
+  // MCQ Specific fields
+  mcqOptions?: string[];
+  selectedOptionIndex?: number;
+  correctOptionIndex?: number;
+  // Text & Essay Specific fields
+  studentTextAnswer?: string;
+  wordCount?: number;
+  modelAnswer?: string;
+  rubrics?: RubricCriterionScore[];
+  // Attachment Specific fields (PRD Sec 28)
+  attachedFile?: {
+    fileName: string;
+    fileSize: string;
+    fileUrl: string;
+    fileType: string;
+    uploadedAt: string;
+  };
+}
+
+export interface StudentAttemptEvaluationSession {
+  submissionId: string;
+  examId: string;
+  examName: string;
+  examCode: string;
+  studentId: string;
+  studentName: string;
+  rollNo: string;
+  avatar: string;
+  classDivisionLabel: string;
+  submissionDate: string;
+  maxMarks: number;
+  passMarks: number;
+  currentQuestionIndex: number;
+  questions: StudentQuestionEvaluationItem[];
 }
 
 export interface GradeRule {

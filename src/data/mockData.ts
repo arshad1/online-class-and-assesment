@@ -17,6 +17,8 @@ import {
   SubjectChapterItem,
   BankQuestionItem,
   EvaluationDashboardItem,
+  StudentAttemptEvaluationSession,
+  StudentQuestionEvaluationItem,
 } from '../types';
 
 // -------------------------------------------------------------
@@ -1615,3 +1617,141 @@ export const mockEvaluationDashboardItems: EvaluationDashboardItem[] = [
     evaluator: 'Unassigned',
   },
 ];
+
+// -------------------------------------------------------------
+// Prototype 23: Mock Single Student Evaluation Attempt (PRD Sections 25, 27, 28)
+// -------------------------------------------------------------
+export const mockStudentEvaluationAttempt: StudentAttemptEvaluationSession = {
+  submissionId: 'sub-101',
+  examId: 'exam-101',
+  examName: 'Grade 10 Mathematics Midterm 2026',
+  examCode: 'QP-MATH-101',
+  studentId: 's-4',
+  studentName: 'Diya Sen',
+  rollNo: '1004',
+  avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+  classDivisionLabel: 'Grade 10 - Division A',
+  submissionDate: '10 Aug 2026, 09:58 AM',
+  maxMarks: 100,
+  passMarks: 40,
+  currentQuestionIndex: 0,
+  questions: [
+    {
+      id: 'q-eval-1',
+      questionNumber: 1,
+      sectionName: 'Section A: Objective Questions',
+      evaluationType: 'auto_mcq',
+      questionText: 'Find the roots of the quadratic equation 2x² - 5x + 3 = 0.',
+      maxMarks: 5,
+      awardedMarks: 5,
+      teacherRemarks: 'Auto-graded: Candidate option matches answer key.',
+      isAutoEvaluated: true,
+      autoScoredStatus: 'correct',
+      mcqOptions: ['x = 1, x = 3/2', 'x = -1, x = -3/2', 'x = 2, x = 3', 'x = 5, x = 2'],
+      selectedOptionIndex: 0,
+      correctOptionIndex: 0,
+    },
+    {
+      id: 'q-eval-2',
+      questionNumber: 2,
+      sectionName: 'Section A: Objective Questions',
+      evaluationType: 'auto_mcq',
+      questionText: 'What is the nature of roots for a quadratic equation when the discriminant D < 0?',
+      maxMarks: 5,
+      awardedMarks: 0,
+      teacherRemarks: 'Auto-graded: Candidate selected option C (Real & Equal). Correct is Option B (Complex / Imaginary).',
+      isAutoEvaluated: true,
+      autoScoredStatus: 'incorrect',
+      mcqOptions: ['Real and distinct', 'Complex / Imaginary', 'Real and equal', 'Zero roots'],
+      selectedOptionIndex: 2,
+      correctOptionIndex: 1,
+    },
+    {
+      id: 'q-eval-3',
+      questionNumber: 3,
+      sectionName: 'Section B: Short Answer Questions',
+      evaluationType: 'manual_text',
+      questionText: 'Prove that √5 is an irrational number by the method of contradiction.',
+      maxMarks: 15,
+      awardedMarks: 15,
+      teacherRemarks: 'Flawless contradiction setup and algebraic execution.',
+      isAutoEvaluated: false,
+      studentTextAnswer:
+        'Let √5 be rational = a/b where a, b are coprime integers and b ≠ 0.\nSquaring both sides: 5 = a²/b² => a² = 5b².\nThus 5 divides a², so 5 divides a. Let a = 5k.\nSubstituting: (5k)² = 5b² => 25k² = 5b² => b² = 5k².\nThus 5 divides b. This implies 5 is a common factor of both a and b, which contradicts our assumption that a and b are coprime.\nTherefore, √5 is an irrational number.',
+      wordCount: 78,
+      modelAnswer:
+        'Assume √5 = a/b (coprime). 5b² = a² => 5|a => a=5k => 5b² = 25k² => b²=5k² => 5|b. Contradicts coprime assumption.',
+      rubrics: [
+        { id: 'r1', criterion: 'Contradiction Hypothesis & Setup', maxScore: 3, awardedScore: 3, description: 'Correctly assumes a/b coprime integers.' },
+        { id: 'r2', criterion: 'Divisibility Derivation', maxScore: 7, awardedScore: 7, description: 'Derives 5|a and 5|b algebraically.' },
+        { id: 'r3', criterion: 'Final Contradiction Conclusion', maxScore: 5, awardedScore: 5, description: 'States contradiction and concludes irrationality.' },
+      ],
+    },
+    {
+      id: 'q-eval-4',
+      questionNumber: 4,
+      sectionName: 'Section B: Short Answer Questions',
+      evaluationType: 'manual_text',
+      questionText:
+        'Find the mean and median of the frequency distribution table:\nClasses: 0-10 (f=5), 10-20 (f=8), 20-30 (f=20), 30-40 (f=12), 40-50 (f=5).',
+      maxMarks: 15,
+      awardedMarks: 13,
+      teacherRemarks: 'Calculations are accurate. Minor step formatting could be cleaner in median formula.',
+      isAutoEvaluated: false,
+      studentTextAnswer:
+        'Total N = 50.\nMean = Σ(fx)/N = (5*5 + 15*8 + 25*20 + 35*12 + 45*5) / 50\n= (25 + 120 + 500 + 420 + 225) / 50 = 1290 / 50 = 25.8.\n\nMedian Class is 20-30 (Cumulative Frequency reaching 25).\nMedian = L + [(N/2 - CF)/f] * h = 20 + [(25 - 13)/20] * 10 = 20 + (12/2) = 26.0.',
+      wordCount: 65,
+      modelAnswer: 'Mean = 25.8, Median = 26.0.',
+      rubrics: [
+        { id: 'r1', criterion: 'Mean Calculation', maxScore: 7, awardedScore: 7, description: 'Calculates fx sum 1290 / 50 = 25.8.' },
+        { id: 'r2', criterion: 'Median Class & Formula', maxScore: 8, awardedScore: 6, description: 'Applies median formula to obtain 26.0.' },
+      ],
+    },
+    {
+      id: 'q-eval-5',
+      questionNumber: 5,
+      sectionName: 'Section C: Analytical Problem Solving',
+      evaluationType: 'manual_essay',
+      questionText:
+        'A 7m high building is observed from a tower top. The angle of elevation of the top of a cable tower from the top of the building is 60° and the angle of depression of its foot is 45°. Determine the height of the tower.',
+      maxMarks: 25,
+      awardedMarks: 23,
+      teacherRemarks: 'Excellent geometric diagram interpretation and trigonometric ratios application.',
+      isAutoEvaluated: false,
+      studentTextAnswer:
+        'Let building height AB = 7m. Let cable tower height CD = H meters.\nDistance between building and tower = x.\nFrom building top B:\nAngle of depression to foot D is 45° => In right ΔABD, tan(45°) = AB/AD = 7/x => x = 7 meters.\nAngle of elevation to top C is 60° => In top right Δ, tan(60°) = (H - 7)/x.\n√3 = (H - 7)/7 => H - 7 = 7√3 => H = 7(1 + √3) meters.\nTaking √3 ≈ 1.732 => H = 7 * 2.732 = 19.124 meters.',
+      wordCount: 88,
+      modelAnswer: 'Height H = 7(1 + √3) ≈ 19.12m.',
+      rubrics: [
+        { id: 'r1', criterion: 'Geometric Relations & Diagram', maxScore: 5, awardedScore: 5, description: 'Correctly sets up right triangles.' },
+        { id: 'r2', criterion: 'Trigonometric Equations', maxScore: 12, awardedScore: 11, description: 'Applies tan(45°) and tan(60°).' },
+        { id: 'r3', criterion: 'Final Numerical Answer', maxScore: 8, awardedScore: 7, description: 'Yields 7(1+√3) meters.' },
+      ],
+    },
+    {
+      id: 'q-eval-6',
+      questionNumber: 6,
+      sectionName: 'Section D: Attachment Submission (PRD Sec 28)',
+      evaluationType: 'attachment',
+      questionText:
+        'State and prove Thales Theorem (Basic Proportionality Theorem). Upload your complete handwritten geometrical diagram, construction steps, and triangle ratio proof.',
+      maxMarks: 35,
+      awardedMarks: 32,
+      teacherRemarks: 'Uploaded PDF answer sheet reviewed. Geometric construction is crisp and proof is complete.',
+      isAutoEvaluated: false,
+      attachedFile: {
+        fileName: 'Diya_Sen_Thales_Theorem_Proof_Handwritten.pdf',
+        fileSize: '2.4 MB',
+        fileUrl: '/assets/sample_handwritten_proof.pdf',
+        fileType: 'application/pdf',
+        uploadedAt: '10 Aug 2026, 09:55 AM',
+      },
+      modelAnswer: 'Statement: Line drawn parallel to one side of triangle divides other two sides in same ratio. Proof: Area(ΔADE)/Area(ΔBDE) = AD/DB, Area(ΔADE)/Area(ΔDEC) = AE/EC.',
+      rubrics: [
+        { id: 'r1', criterion: 'Theorem Statement & Diagram', maxScore: 10, awardedScore: 9, description: 'Clean labelled diagram and statement.' },
+        { id: 'r2', criterion: 'Construction Steps', maxScore: 10, awardedScore: 9, description: 'Perpendicular draws and segment joins.' },
+        { id: 'r3', criterion: 'Ratio Equality Proof', maxScore: 15, awardedScore: 14, description: 'Area ratio equivalence AD/DB = AE/EC.' },
+      ],
+    },
+  ],
+};

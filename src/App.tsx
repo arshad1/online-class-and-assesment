@@ -20,6 +20,8 @@ import { QuestionBankBrowserView } from './views/QuestionBankBrowserView';
 import { ExamReviewPublishView } from './views/ExamReviewPublishView';
 import { PdfQuestionPaperSetupView } from './views/PdfQuestionPaperSetupView';
 import { AnswerSubmissionConfigView } from './views/AnswerSubmissionConfigView';
+import { EvaluationDashboardView } from './views/EvaluationDashboardView';
+import { AnswerEvaluationView } from './views/AnswerEvaluationView';
 
 // Parent & Student Views
 import { ParentDashboardView } from './views/ParentDashboardView';
@@ -76,6 +78,8 @@ const MainContent: React.FC = () => {
           {activeTab === 'create-exam-pdf-section' && <AnswerSubmissionConfigView />}
           {activeTab === 'exam-monitoring' && <ExamMonitoringView />}
           {activeTab === 'assessment' && <AssessmentView />}
+          {activeTab === 'evaluation-dashboard' && <EvaluationDashboardView />}
+          {activeTab === 'answer-evaluation' && <AnswerEvaluationView />}
           {activeTab === 'publish-results' && <PublishResultsView />}
           {activeTab === 'settings' && <SettingsView />}
 

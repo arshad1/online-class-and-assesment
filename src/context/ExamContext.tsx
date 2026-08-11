@@ -28,6 +28,8 @@ import {
   ExamAnswerSubmissionConfigFormData,
   EvaluationDashboardItem,
   PRDEvaluationStatus,
+  StudentAttemptEvaluationSession,
+  StudentQuestionEvaluationItem,
 } from '../types';
 import {
   mockStudents as initialStudents,
@@ -45,6 +47,7 @@ import {
   mockRecentActivities as initialRecentActivities,
   mockParentAccount as initialParentAccount,
   mockEvaluationDashboardItems,
+  mockStudentEvaluationAttempt,
 } from '../data/mockData';
 
 export interface ToastMessage {
@@ -165,6 +168,13 @@ interface ExamContextType {
   setEvaluationDashboardItems: React.Dispatch<React.SetStateAction<EvaluationDashboardItem[]>>;
   updateEvaluationDashboardItemStatus: (id: string, status: PRDEvaluationStatus, obtainedMarks?: number | null, feedback?: string) => void;
   bulkPublishEvaluationDashboardItems: (ids?: string[]) => void;
+
+  // Prototype 23 Answer Evaluation State (PRD Sections 25, 27, 28)
+  activeEvaluationAttempt: StudentAttemptEvaluationSession;
+  setActiveEvaluationAttempt: React.Dispatch<React.SetStateAction<StudentAttemptEvaluationSession>>;
+  updateQuestionAwardedMarks: (questionId: string, marks: number, remarks?: string) => void;
+  navigateAttemptQuestion: (target: 'next' | 'prev' | number) => void;
+  completeAttemptEvaluation: () => void;
 
   // Selection & Modal State
   selectedStudentForDrawer: MonitoringStudent | null;
@@ -457,6 +467,9 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Prototype 22 Evaluation Dashboard State
   const [evaluationDashboardItems, setEvaluationDashboardItems] = useState<EvaluationDashboardItem[]>(mockEvaluationDashboardItems);
+
+  // Prototype 23 Answer Evaluation State
+  const [activeEvaluationAttempt, setActiveEvaluationAttempt] = useState<StudentAttemptEvaluationSession>(mockStudentEvaluationAttempt);
 
   // Modals & Selection
   const [selectedStudentForDrawer, setSelectedStudentForDrawer] = useState<MonitoringStudent | null>(null);
@@ -835,6 +848,91 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addToast('Results Published!', 'Exam results are now published to student portal.', 'success');
   };
 
+  // Prototype 22 Evaluation Dashboard Methods
+  const updateEvaluationDashboardItemStatus = (
+    id: string,
+    status: PRDEvaluationStatus,
+    obtainedMarks?: number | null,
+    feedback?: string
+  ) => {
+    setEvaluationDashboardItems((prev) =>
+      prev.map((item) => {
+        if (item.id === id) {
+          const newMarks = obtainedMarks !== undefined ? obtainedMarks : item.obtainedMarks;
+          const percentage = newMarks !== null && newMarks !== undefined ? Math.round((newMarks / item.maxMarks) * 100) : item.percentage;
+          return {
+            ...item,
+            evaluationStatus: status,
+            obtainedMarks: newMarks,
+            percentage,
+            feedback: feedback !== undefined ? feedback : item.feedback,
+            evaluator: status !== 'Not Started' ? (item.evaluator === 'Unassigned' ? 'Prof. Sarah Jenkins' : item.evaluator) : item.evaluator,
+          };
+        }
+        return item;
+      })
+    );
+    addToast('Status Updated', `Evaluation status updated to "${status}".`, 'success');
+  };
+
+  const bulkPublishEvaluationDashboardItems = (ids?: string[]) => {
+    setEvaluationDashboardItems((prev) =>
+      prev.map((item) => {
+        if (!ids || ids.includes(item.id)) {
+          if (item.evaluationStatus === 'Completed') {
+            return { ...item, evaluationStatus: 'Published' };
+          }
+        }
+        return item;
+      })
+    );
+    addToast('Bulk Publish Success', 'Completed evaluations published successfully.', 'success');
+  };
+
+  // Prototype 23 Answer Evaluation Methods
+  const updateQuestionAwardedMarks = (questionId: string, marks: number, remarks?: string) => {
+    setActiveEvaluationAttempt((prev) => ({
+      ...prev,
+      questions: prev.questions.map((q) => {
+        if (q.id === questionId) {
+          const validMarks = Math.min(Math.max(0, marks), q.maxMarks);
+          return {
+            ...q,
+            awardedMarks: validMarks,
+            teacherRemarks: remarks !== undefined ? remarks : q.teacherRemarks,
+          };
+        }
+        return q;
+      }),
+    }));
+  };
+
+  const navigateAttemptQuestion = (target: 'next' | 'prev' | number) => {
+    setActiveEvaluationAttempt((prev) => {
+      let nextIndex = prev.currentQuestionIndex;
+      if (typeof target === 'number') {
+        nextIndex = Math.min(Math.max(0, target), prev.questions.length - 1);
+      } else if (target === 'next') {
+        nextIndex = Math.min(prev.currentQuestionIndex + 1, prev.questions.length - 1);
+      } else if (target === 'prev') {
+        nextIndex = Math.max(prev.currentQuestionIndex - 1, 0);
+      }
+      return { ...prev, currentQuestionIndex: nextIndex };
+    });
+  };
+
+  const completeAttemptEvaluation = () => {
+    const totalAwarded = activeEvaluationAttempt.questions.reduce((acc, q) => acc + q.awardedMarks, 0);
+    updateEvaluationDashboardItemStatus(
+      activeEvaluationAttempt.submissionId === 'sub-101' ? 'eval-101' : activeEvaluationAttempt.submissionId,
+      'Completed',
+      totalAwarded,
+      'Full attempt evaluation completed.'
+    );
+    addToast('Evaluation Completed', `Total marks locked at ${totalAwarded}/${activeEvaluationAttempt.maxMarks}.`, 'success');
+    setActiveTab('evaluation-dashboard');
+  };
+
   return (
     <ExamContext.Provider
       value={{
@@ -931,6 +1029,17 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         studentSubmissions,
         resultSettings,
         recentActivities,
+
+        evaluationDashboardItems,
+        setEvaluationDashboardItems,
+        updateEvaluationDashboardItemStatus,
+        bulkPublishEvaluationDashboardItems,
+
+        activeEvaluationAttempt,
+        setActiveEvaluationAttempt,
+        updateQuestionAwardedMarks,
+        navigateAttemptQuestion,
+        completeAttemptEvaluation,
 
         selectedStudentForDrawer,
         setSelectedStudentForDrawer,

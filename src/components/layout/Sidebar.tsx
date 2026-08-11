@@ -4,6 +4,7 @@ import {
   CalendarClock,
   Activity,
   CheckSquare,
+  ClipboardCheck,
   Award,
   Settings,
   BookOpen,
@@ -27,6 +28,7 @@ export const Sidebar: React.FC = () => {
     setActiveTab,
     monitoringStudents,
     studentSubmissions,
+    evaluationDashboardItems,
     parentAccount,
     selectedChild,
     setSelectedChildId,
@@ -40,6 +42,10 @@ export const Sidebar: React.FC = () => {
     (s) => s.evaluationStatus === 'pending' || s.evaluationStatus === 'in_review'
   ).length;
 
+  const pendingEvaluationDashboardCount = evaluationDashboardItems.filter(
+    (i) => i.evaluationStatus === 'Not Started' || i.evaluationStatus === 'In Progress'
+  ).length;
+
   const teacherNavItems: { id: ActiveNavTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: string }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'exam-scheduling', label: 'Exam Scheduling', icon: <CalendarClock className="w-4 h-4" /> },
@@ -51,11 +57,23 @@ export const Sidebar: React.FC = () => {
       badgeColor: 'bg-amber-500 text-slate-900',
     },
     {
+      id: 'evaluation-dashboard',
+      label: 'Evaluation Dashboard (P22)',
+      icon: <ClipboardCheck className="w-4 h-4" />,
+      badge: pendingEvaluationDashboardCount > 0 ? pendingEvaluationDashboardCount : undefined,
+      badgeColor: 'bg-blue-600 text-white',
+    },
+    {
+      id: 'answer-evaluation',
+      label: 'Answer Evaluation (P23)',
+      icon: <FileText className="w-4 h-4" />,
+    },
+    {
       id: 'assessment',
       label: 'Assessment',
       icon: <CheckSquare className="w-4 h-4" />,
       badge: pendingAssessmentCount > 0 ? pendingAssessmentCount : undefined,
-      badgeColor: 'bg-blue-500 text-white',
+      badgeColor: 'bg-slate-600 text-white',
     },
     { id: 'publish-results', label: 'Results', icon: <Award className="w-4 h-4" /> },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
