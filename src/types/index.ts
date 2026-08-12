@@ -160,10 +160,147 @@ export interface ActivityEvent {
 }
 
 // -------------------------------------------------------------
-// NEW Teacher-Side Online Exam Module Types
+// NEW Teacher-Side & 5-Tier Governance Portal Types
 // -------------------------------------------------------------
 
-export type PortalMode = 'teacher' | 'parent_student';
+export type ProctoringEventCode =
+  | 'FACE_NOT_DETECTED'
+  | 'MULTIPLE_FACE_DETECTED'
+  | 'IDENTITY_MISMATCH'
+  | 'FACE_POSITION_OUT_OF_BOUNDS'
+  | 'LOOKING_AWAY'
+  | 'LIVENESS_FAILED'
+  | 'CAMERA_DISABLED'
+  | 'MICROPHONE_DISABLED'
+  | 'FULLSCREEN_EXIT'
+  | 'TAB_SWITCH'
+  | 'SUSPICIOUS_AUDIO';
+
+export type UserRole = 'admin' | 'coordinator' | 'teacher' | 'proctor' | 'student';
+
+export type PortalMode = 'teacher' | 'parent_student' | 'admin' | 'coordinator' | 'proctor' | 'student';
+
+export interface StudentAccommodation {
+  id: string;
+  studentId: string;
+  studentName: string;
+  admissionNo: string;
+  class: string;
+  extraTimeMultiplier: number; // e.g. 1.0, 1.25, 1.5, 2.0
+  relaxedProctoringSensitivity: boolean;
+  allowedBreakMinutes: number;
+  allowScreenReader: boolean;
+  highContrastTheme: boolean;
+  notes?: string;
+  approvedBy: string;
+  updatedAt: string;
+}
+
+export interface ExamSection {
+  id: string;
+  title: string;
+  description?: string;
+  durationMinutes?: number;
+  maxMarks: number;
+  questionIds: string[];
+  instructions?: string;
+  isOptional?: boolean;
+}
+
+export interface SystemReadinessReport {
+  cameraDetected: boolean;
+  cameraPermissionGranted: boolean;
+  faceDetected: boolean;
+  micDetected: boolean;
+  micPermissionGranted: boolean;
+  audioInputActive: boolean;
+  networkConnectivity: 'stable' | 'unstable' | 'offline';
+  latencyMs: number;
+  browserSupported: boolean;
+  browserNameVersion: string;
+  screenSizeValid: boolean;
+  fullScreenSupported: boolean;
+  idPhotoVerified: boolean;
+  readinessTimestamp: string;
+  isReady: boolean;
+}
+
+export type RiskScoreTier = 'normal' | 'monitor' | 'suspicious' | 'critical';
+
+export interface DynamicRiskScoreSummary {
+  score: number; // 0 to 100
+  tier: RiskScoreTier;
+  colorBadgeClass: string;
+  label: string;
+  totalViolations: number;
+  lastViolationCode?: string;
+  lastViolationTime?: string;
+}
+
+export function getRiskScoreSummary(score: number): DynamicRiskScoreSummary {
+  if (score >= 76) {
+    return {
+      score,
+      tier: 'critical',
+      colorBadgeClass: 'bg-red-100 text-red-800 border-red-300 font-extrabold animate-pulse',
+      label: 'CRITICAL (76-100)',
+      totalViolations: Math.floor(score / 20),
+    };
+  } else if (score >= 51) {
+    return {
+      score,
+      tier: 'suspicious',
+      colorBadgeClass: 'bg-amber-100 text-amber-800 border-amber-300 font-bold',
+      label: 'SUSPICIOUS (51-75)',
+      totalViolations: Math.floor(score / 25),
+    };
+  } else if (score >= 21) {
+    return {
+      score,
+      tier: 'monitor',
+      colorBadgeClass: 'bg-blue-100 text-blue-800 border-blue-300 font-bold',
+      label: 'MONITOR (21-50)',
+      totalViolations: Math.floor(score / 30),
+    };
+  }
+  return {
+    score,
+    tier: 'normal',
+    colorBadgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300 font-semibold',
+    label: 'NORMAL (0-20)',
+    totalViolations: 0,
+  };
+}
+
+export interface ProctorWarningMessage {
+  id: string;
+  studentId: string;
+  examId: string;
+  senderName: string;
+  message: string;
+  timestamp: string;
+  isAcknowledged: boolean;
+  severity: 'info' | 'warning' | 'urgent';
+}
+
+export type ResultApprovalStep = 'eval_completed' | 'teacher_review' | 'coordinator_approval' | 'published';
+
+export interface ResultApprovalState {
+  examId: string;
+  currentStep: ResultApprovalStep;
+  teacherApprovedBy?: string;
+  teacherApprovedAt?: string;
+  coordinatorApprovedBy?: string;
+  coordinatorApprovedAt?: string;
+  publishedAt?: string;
+  comments?: Array<{
+    id: string;
+    author: string;
+    role: UserRole;
+    text: string;
+    timestamp: string;
+  }>;
+}
 
 export type ActiveNavTab =
   | 'dashboard'

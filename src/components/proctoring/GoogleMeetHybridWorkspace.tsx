@@ -97,6 +97,7 @@ export const GoogleMeetHybridWorkspace: React.FC<HybridWorkspaceProps> = ({ onCl
   }, []);
 
   // Real-time Canvas AI Face Tracking Box Loop
+  // Real-time Canvas AI Face Tracking & Head Pose Overlay (PRD Sec 25 - 30)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -109,7 +110,9 @@ export const GoogleMeetHybridWorkspace: React.FC<HybridWorkspaceProps> = ({ onCl
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const isAlert = Boolean(simulatedViolation);
-      ctx.strokeStyle = isAlert ? '#ef4444' : '#10b981';
+      const isWarning = simulatedViolation === 'LOOKING_AWAY' || simulatedViolation === 'FACE_POSITION_OUT_OF_BOUNDS';
+
+      ctx.strokeStyle = isAlert ? (isWarning ? '#f59e0b' : '#ef4444') : '#10b981';
       ctx.lineWidth = 3;
 
       // Dynamic Face Bounding Box
@@ -118,24 +121,46 @@ export const GoogleMeetHybridWorkspace: React.FC<HybridWorkspaceProps> = ({ onCl
       const w = canvas.width * 0.44;
       const h = canvas.height * 0.64;
 
-      ctx.strokeRect(x, y, w, h);
+      if (simulatedViolation !== 'FACE_NOT_DETECTED') {
+        ctx.strokeRect(x, y, w, h);
 
-      // Bounding box corners
-      ctx.fillStyle = isAlert ? '#ef4444' : '#10b981';
-      ctx.fillRect(x - 4, y - 4, 10, 10);
-      ctx.fillRect(x + w - 6, y - 4, 10, 10);
-      ctx.fillRect(x - 4, y + h - 6, 10, 10);
-      ctx.fillRect(x + w - 6, y + h - 6, 10, 10);
+        // Bounding box corner accents
+        ctx.fillStyle = isAlert ? (isWarning ? '#f59e0b' : '#ef4444') : '#10b981';
+        ctx.fillRect(x - 4, y - 4, 10, 10);
+        ctx.fillRect(x + w - 6, y - 4, 10, 10);
+        ctx.fillRect(x - 4, y + h - 6, 10, 10);
+        ctx.fillRect(x + w - 6, y + h - 6, 10, 10);
 
-      // Header Pill
-      ctx.fillRect(x, y - 22, 220, 20);
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(
-        isAlert ? `AI FLAG: ${simulatedViolation}` : 'LIVE AI VERIFIED: candidate_face (99.6%)',
-        x + 6,
-        y - 8
-      );
+        // Liveness & Head Pose Indicators (PRD Sec 29 & 30)
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(x, y - 28, 280, 24);
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillStyle = isAlert ? (isWarning ? '#fbbf24' : '#f87171') : '#34d399';
+        ctx.fillText(
+          isAlert
+            ? `AI THREAT: ${simulatedViolation}`
+            : 'LIVENESS: 99.4% (Anti-Spoofing Passed) • Head Pose: Center',
+          x + 8,
+          y - 12
+        );
+
+        // Render Head Pose Vector Arrow when looking away
+        if (simulatedViolation === 'LOOKING_AWAY') {
+          ctx.beginPath();
+          ctx.moveTo(x + w / 2, y + h / 2);
+          ctx.lineTo(x + w + 30, y + h / 2 - 20);
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 4;
+          ctx.stroke();
+        }
+      } else {
+        // Face Not Detected Warning
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('NO FACE DETECTED IN CAMERA FRAME (PRD Sec 25)', canvas.width * 0.15, canvas.height * 0.5);
+      }
 
       frameId = requestAnimationFrame(renderOverlay);
     };
@@ -151,6 +176,11 @@ export const GoogleMeetHybridWorkspace: React.FC<HybridWorkspaceProps> = ({ onCl
     addToast('Google Meet Launched', 'Opened live Google Meet call window.', 'success');
   };
 
+  const handleTriggerThreatCode = (code: string, label: string) => {
+    setSimulatedViolation(code);
+    addToast('AI Proctoring Alert Logged', `${label} (${code}) recorded into security audit trail.`, 'warning');
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 animate-fade-in select-none">
       <div className="bg-slate-900 text-white w-full max-w-7xl h-[92vh] rounded-2xl border border-slate-800 shadow-2xl flex flex-col overflow-hidden">
@@ -162,13 +192,13 @@ export const GoogleMeetHybridWorkspace: React.FC<HybridWorkspaceProps> = ({ onCl
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-white">Live Working Google Meet + AI Option 1 Architecture</h2>
+                <h2 className="text-base font-bold text-white">AI Proctoring Threat Engine & Liveness Detector (PRD Sec 24-34)</h2>
                 <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold rounded-full">
                   LIVE WEBRTC HARDWARE ACTIVE
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Stream A: Live WebRTC + Canvas AI Inspection &bull; Stream B: Official Google Meet Meeting Launcher
+                Liveness/Anti-Spoofing &bull; Head Pose Vectors &bull; Face Position Tracking &bull; Threat Code Telemetry
               </p>
             </div>
           </div>
@@ -199,7 +229,7 @@ export const GoogleMeetHybridWorkspace: React.FC<HybridWorkspaceProps> = ({ onCl
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                <span className="text-xs font-bold text-slate-200">STREAM A: Real WebRTC Hardware + Canvas AI</span>
+                <span className="text-xs font-bold text-slate-200">STREAM A: Live Liveness & Head Pose Overlay</span>
               </div>
               <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800">
                 {cameraStreamActive ? 'Real Camera Active' : 'Video Simulated'}
@@ -248,39 +278,75 @@ export const GoogleMeetHybridWorkspace: React.FC<HybridWorkspaceProps> = ({ onCl
               </div>
             </div>
 
-            {/* AI Security Event Controls */}
+            {/* AI Security Threat Code Simulation Engine (PRD Sec 72) */}
             <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Test AI Security Telemetry Alerts on Stream A:
+                  PRD Section 72 AI Threat Code Simulators:
                 </span>
                 {simulatedViolation && (
                   <button
                     onClick={() => setSimulatedViolation(null)}
-                    className="text-[10px] text-slate-400 hover:text-white underline"
+                    className="text-[10px] text-emerald-400 hover:text-emerald-300 font-bold underline"
                   >
-                    Reset Alert
+                    Clear Violation (Reset to Normal)
                   </button>
                 )}
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-3 gap-1.5 text-[10px]">
                 <button
-                  onClick={() => setSimulatedViolation('MOBILE PHONE DETECTED')}
-                  className="px-2.5 py-1 bg-red-950 hover:bg-red-900 text-red-200 border border-red-800 rounded font-semibold text-[11px] transition-colors"
+                  onClick={() => handleTriggerThreatCode('FACE_NOT_DETECTED', 'Face Absence Alert')}
+                  className="px-2 py-1 bg-red-950 hover:bg-red-900 text-red-200 border border-red-800 rounded font-semibold transition-colors"
                 >
-                  Trigger Phone Detection
+                  Face Disappear
                 </button>
                 <button
-                  onClick={() => setSimulatedViolation('MULTIPLE FACES')}
-                  className="px-2.5 py-1 bg-amber-950 hover:bg-amber-900 text-amber-200 border border-amber-800 rounded font-semibold text-[11px] transition-colors"
+                  onClick={() => handleTriggerThreatCode('MULTIPLE_FACE_DETECTED', 'Multiple Faces Alert')}
+                  className="px-2 py-1 bg-red-950 hover:bg-red-900 text-red-200 border border-red-800 rounded font-semibold transition-colors"
                 >
-                  Trigger Multiple Faces
+                  Multiple Faces
                 </button>
                 <button
-                  onClick={() => setSimulatedViolation('TAB SWITCH')}
-                  className="px-2.5 py-1 bg-blue-950 hover:bg-blue-900 text-blue-200 border border-blue-800 rounded font-semibold text-[11px] transition-colors"
+                  onClick={() => handleTriggerThreatCode('IDENTITY_MISMATCH', 'Face Replacement Alert')}
+                  className="px-2 py-1 bg-red-950 hover:bg-red-900 text-red-200 border border-red-800 rounded font-semibold transition-colors"
                 >
-                  Trigger Tab Switch
+                  Face Replacement
+                </button>
+                <button
+                  onClick={() => handleTriggerThreatCode('LOOKING_AWAY', 'Head Pose Yaw Alert')}
+                  className="px-2 py-1 bg-amber-950 hover:bg-amber-900 text-amber-200 border border-amber-800 rounded font-semibold transition-colors"
+                >
+                  Looking Away
+                </button>
+                <button
+                  onClick={() => handleTriggerThreatCode('LIVENESS_FAILED', 'Presentation Attack Alert')}
+                  className="px-2 py-1 bg-red-950 hover:bg-red-900 text-red-200 border border-red-800 rounded font-semibold transition-colors"
+                >
+                  Liveness Failed
+                </button>
+                <button
+                  onClick={() => handleTriggerThreatCode('FACE_POSITION_OUT_OF_BOUNDS', 'Face Off-Center Alert')}
+                  className="px-2 py-1 bg-amber-950 hover:bg-amber-900 text-amber-200 border border-amber-800 rounded font-semibold transition-colors"
+                >
+                  Face Off-Center
+                </button>
+                <button
+                  onClick={() => handleTriggerThreatCode('SUSPICIOUS_AUDIO', 'Secondary Voice Alert')}
+                  className="px-2 py-1 bg-purple-950 hover:bg-purple-900 text-purple-200 border border-purple-800 rounded font-semibold transition-colors"
+                >
+                  Secondary Audio
+                </button>
+                <button
+                  onClick={() => handleTriggerThreatCode('FULLSCREEN_EXIT', 'Fullscreen Exit Violation')}
+                  className="px-2 py-1 bg-blue-950 hover:bg-blue-900 text-blue-200 border border-blue-800 rounded font-semibold transition-colors"
+                >
+                  Fullscreen Exit
+                </button>
+                <button
+                  onClick={() => handleTriggerThreatCode('TAB_SWITCH', 'Browser Focus Lost')}
+                  className="px-2 py-1 bg-blue-950 hover:bg-blue-900 text-blue-200 border border-blue-800 rounded font-semibold transition-colors"
+                >
+                  Tab Switch
                 </button>
               </div>
             </div>

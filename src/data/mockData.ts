@@ -22,6 +22,8 @@ import {
   AttachmentEvaluationRecord,
   VisualAnnotationMark,
   CandidateResultCalculationSummary,
+  StudentAccommodation,
+  ExamSection,
 } from '../types';
 
 // -------------------------------------------------------------
@@ -2009,3 +2011,77 @@ export const mockCandidateResultSummary: CandidateResultCalculationSummary = {
     },
   ],
 };
+
+// -------------------------------------------------------------
+// Accommodations & Accessibility Mock Data
+// -------------------------------------------------------------
+export const mockAccommodations: StudentAccommodation[] = [
+  {
+    id: 'acc-1',
+    studentId: 'st-101',
+    studentName: 'Aarav Sharma',
+    admissionNo: 'ADM-2024-001',
+    class: 'Grade 12',
+    extraTimeMultiplier: 1.5,
+    relaxedProctoringSensitivity: true,
+    allowedBreakMinutes: 15,
+    allowScreenReader: true,
+    highContrastTheme: false,
+    notes: 'Extended time approved due to dyslexia accommodation request.',
+    approvedBy: 'Dr. V. K. Mehta (Academic Coordinator)',
+    updatedAt: '2026-08-01 10:30 AM',
+  },
+  {
+    id: 'acc-2',
+    studentId: 's-4',
+    studentName: 'Diya Sharma',
+    admissionNo: 'ADM-2024-044',
+    class: 'Class 8',
+    extraTimeMultiplier: 1.25,
+    relaxedProctoringSensitivity: false,
+    allowedBreakMinutes: 10,
+    allowScreenReader: false,
+    highContrastTheme: true,
+    notes: 'Visual impairment accommodation - enlarged typography & high contrast requested.',
+    approvedBy: 'Sister Mary (Principal)',
+    updatedAt: '2026-08-05 02:15 PM',
+  },
+];
+
+// -------------------------------------------------------------
+// Multi-Section Exam Mock Data (PRD Sec 18, 86, 87)
+// -------------------------------------------------------------
+export const mockExamSections: ExamSection[] = [
+  {
+    id: 'sec-a',
+    title: 'Section A: Multiple Choice Questions (MCQs)',
+    description: 'Single-choice objective questions covering fundamental concepts & terminology.',
+    durationMinutes: 30,
+    maxMarks: 30,
+    questionIds: ['qb-1', 'qb-2', 'qb-3'],
+    instructions: 'All questions carry equal marks (10 marks each). Choose the single best option.',
+    isOptional: false,
+  },
+  {
+    id: 'sec-b',
+    title: 'Section B: Short Answer & Mathematical Proofs',
+    description: 'Concise step-by-step mathematical reasoning and theorem proofs.',
+    durationMinutes: 45,
+    maxMarks: 35,
+    questionIds: ['qb-4', 'qb-5'],
+    instructions: 'Answer in clear, numbered steps. Word limit: 150 words per question.',
+    isOptional: false,
+  },
+  {
+    id: 'sec-c',
+    title: 'Section C: Essay & Applied Case Study',
+    description: 'Analytical case study and detailed handwritten diagram upload.',
+    durationMinutes: 45,
+    maxMarks: 35,
+    questionIds: ['qb-6'],
+    instructions: 'Upload your complete handwritten diagram or type a comprehensive response.',
+    isOptional: false,
+  },
+];
+
+

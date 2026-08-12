@@ -47,6 +47,17 @@ export const EvidenceReviewView: React.FC = () => {
   };
   const handleNext = () => {
     if (currentIndex < alerts.length - 1) setSelectedAlert(alerts[currentIndex + 1]);
+  const handleExportForensicReport = () => {
+    const csvContent = `INCIDENT AUDIT REPORT (PRD SEC 76)\nAlert ID: ${activeAlert.id}\nStudent Name: ${activeAlert.studentName}\nRoll No: ${activeAlert.rollNo}\nViolation Type: ${activeAlert.violationType}\nSeverity: ${activeAlert.severity}\nTimestamp: ${activeAlert.timestamp}\nReviewer Note: ${reviewerComment || 'Proctor reviewed video telemetry frame'}\nStatus: ${activeAlert.status}\n`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Forensic_Report_${activeAlert.studentName.replace(/\s+/g, '_')}_${activeAlert.id}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    addToast('Forensic Audit Package Exported', 'Downloaded complete incident evidence report.', 'success');
   };
 
   return (
@@ -59,7 +70,7 @@ export const EvidenceReviewView: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold tracking-tight">Evidence Review Workspace</h2>
+              <h2 className="text-base font-bold tracking-tight">Evidence Review Workspace (PRD Sec 68-76)</h2>
               <span className="font-mono text-xs px-2 py-0.5 bg-slate-800 text-blue-400 rounded border border-slate-700">
                 {activeAlert.alertCode}
               </span>
@@ -70,15 +81,21 @@ export const EvidenceReviewView: React.FC = () => {
           </div>
         </div>
 
-        {/* Prev / Next Navigation */}
+        {/* Prev / Next & Export Navigation */}
         <div className="flex items-center gap-2 text-xs">
+          <button
+            onClick={handleExportForensicReport}
+            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm"
+          >
+            <span>Export Forensic Audit PDF</span>
+          </button>
           <button
             onClick={handlePrev}
             disabled={currentIndex === 0}
             className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg flex items-center gap-1 transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
-            <span>Prev Evidence</span>
+            <span>Prev</span>
           </button>
           <span className="text-slate-400 font-medium">
             {currentIndex + 1} of {alerts.length}
@@ -88,7 +105,7 @@ export const EvidenceReviewView: React.FC = () => {
             disabled={currentIndex === alerts.length - 1}
             className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg flex items-center gap-1 transition-colors"
           >
-            <span>Next Evidence</span>
+            <span>Next</span>
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>

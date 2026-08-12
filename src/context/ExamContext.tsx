@@ -34,6 +34,9 @@ import {
   VisualAnnotationMark,
   AnnotationToolType,
   CandidateResultCalculationSummary,
+  UserRole,
+  StudentAccommodation,
+  ExamSection,
 } from '../types';
 import {
   mockStudents as initialStudents,
@@ -54,6 +57,8 @@ import {
   mockStudentEvaluationAttempt,
   mockAttachmentEvaluationRecords,
   mockCandidateResultSummary,
+  mockAccommodations as initialAccommodations,
+  mockExamSections as initialExamSections,
 } from '../data/mockData';
 
 export interface ToastMessage {
@@ -64,11 +69,26 @@ export interface ToastMessage {
 }
 
 interface ExamContextType {
-  // Global Portal Navigation
+  // Global Portal Navigation & 5-Tier User Roles
+  userRole: UserRole;
+  setUserRole: (role: UserRole) => void;
   portalMode: PortalMode;
   setPortalMode: (mode: PortalMode) => void;
   activeTab: ActiveNavTab;
   setActiveTab: (tab: ActiveNavTab) => void;
+
+  // Student Accommodations & Accessibility
+  accommodations: StudentAccommodation[];
+  saveAccommodation: (acc: StudentAccommodation) => void;
+
+  // Multi-Section Exam Creation & Validation (PRD Sec 18, 86, 87)
+  examSections: ExamSection[];
+  setExamSections: React.Dispatch<React.SetStateAction<ExamSection[]>>;
+  addExamSection: (sec: ExamSection) => void;
+  updateExamSection: (id: string, updates: Partial<ExamSection>) => void;
+  removeExamSection: (id: string) => void;
+  showExamPreviewModal: boolean;
+  setShowExamPreviewModal: (show: boolean) => void;
 
   // Parent & Multi-Student State
   parentAccount: ParentAccount;
@@ -249,8 +269,52 @@ interface ExamContextType {
 const ExamContext = createContext<ExamContextType | undefined>(undefined);
 
 export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [userRole, setUserRoleState] = useState<UserRole>('teacher');
   const [portalMode, setPortalModeState] = useState<PortalMode>('teacher');
   const [activeTab, setActiveTab] = useState<ActiveNavTab>('dashboard');
+
+  const [accommodations, setAccommodations] = useState<StudentAccommodation[]>(initialAccommodations);
+
+  const setUserRole = (role: UserRole) => {
+    setUserRoleState(role);
+    if (role === 'teacher' || role === 'admin' || role === 'coordinator') {
+      setPortalModeState('teacher');
+    } else if (role === 'student') {
+      setPortalModeState('parent_student');
+    } else if (role === 'proctor') {
+      setPortalModeState('proctor');
+    }
+  };
+
+  const saveAccommodation = (newAcc: StudentAccommodation) => {
+    setAccommodations((prev) => {
+      const idx = prev.findIndex((a) => a.studentId === newAcc.studentId);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = newAcc;
+        return copy;
+      }
+      return [...prev, newAcc];
+    });
+  };
+
+  // Section-Based Exam Creation & Preview State
+  const [examSections, setExamSections] = useState<ExamSection[]>(initialExamSections);
+  const [showExamPreviewModal, setShowExamPreviewModal] = useState<boolean>(false);
+
+  const addExamSection = (sec: ExamSection) => {
+    setExamSections((prev) => [...prev, sec]);
+  };
+
+  const updateExamSection = (id: string, updates: Partial<ExamSection>) => {
+    setExamSections((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, ...updates } : s))
+    );
+  };
+
+  const removeExamSection = (id: string) => {
+    setExamSections((prev) => prev.filter((s) => s.id !== id));
+  };
 
   // Parent & Child State
   const [parentAccount] = useState<ParentAccount>(initialParentAccount);
@@ -1084,10 +1148,23 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <ExamContext.Provider
       value={{
+        userRole,
+        setUserRole,
         portalMode,
         setPortalMode,
         activeTab,
         setActiveTab,
+
+        accommodations,
+        saveAccommodation,
+
+        examSections,
+        setExamSections,
+        addExamSection,
+        updateExamSection,
+        removeExamSection,
+        showExamPreviewModal,
+        setShowExamPreviewModal,
 
         parentAccount,
         selectedChild,

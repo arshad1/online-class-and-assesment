@@ -39,6 +39,7 @@ import { TeacherBroadcastModal } from './components/modals/TeacherBroadcastModal
 import { ManualAssessmentModal } from './components/modals/ManualAssessmentModal';
 import { StudentReportCardModal } from './components/modals/StudentReportCardModal';
 import { PublishConfirmationModal } from './components/modals/PublishConfirmationModal';
+import { ExamPreviewModal } from './components/modals/ExamPreviewModal';
 
 const MainContent: React.FC = () => {
   const { activeTab } = useExam();
@@ -102,6 +103,7 @@ const MainContent: React.FC = () => {
       <ManualAssessmentModal />
       <StudentReportCardModal />
       <PublishConfirmationModal />
+      <ExamPreviewModal />
 
       {/* Floating Notifications */}
       <ToastContainer />

@@ -564,6 +564,84 @@ export const PublishResultsView: React.FC = () => {
         />
       )}
 
+      {/* PRD SEC 62 & 64: Multi-Level Result Approval Governance Pipeline */}
+      <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-blue-400" />
+              <h3 className="font-extrabold text-sm text-white">Multi-Tier Result Approval Pipeline (PRD Sec 62 & 64)</h3>
+              <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 border border-blue-500/40 text-[10px] font-bold rounded-full">
+                4-STAGE GOVERNANCE ACTIVE
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Requires Coordinator & Controller Sign-Off before student portal publication
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-lg border border-emerald-800">
+              Coordinator Approval: Signed Off ✓
+            </span>
+            <span className="text-xs font-bold text-amber-300 bg-amber-950/80 px-3 py-1 rounded-lg border border-amber-800">
+              Principal Sign-Off: Ready
+            </span>
+          </div>
+        </div>
+
+        {/* 4-Stage Workflow Steps */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div className="p-3 bg-slate-950 rounded-xl border border-emerald-800/80 space-y-1">
+            <div className="flex items-center justify-between text-emerald-400 font-bold">
+              <span>Stage 1: Teacher Evaluation</span>
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+            <p className="text-[11px] text-slate-400">Answer grading completed by Dr. Sarah Jenkins</p>
+          </div>
+
+          <div className="p-3 bg-slate-950 rounded-xl border border-emerald-800/80 space-y-1">
+            <div className="flex items-center justify-between text-emerald-400 font-bold">
+              <span>Stage 2: HOD Review</span>
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+            <p className="text-[11px] text-slate-400">Approved by Prof. Robert Vance (HOD Science)</p>
+          </div>
+
+          <div className="p-3 bg-slate-950 rounded-xl border border-blue-800 space-y-1">
+            <div className="flex items-center justify-between text-blue-400 font-bold">
+              <span>Stage 3: Controller Approval</span>
+              <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+            </div>
+            <p className="text-[11px] text-slate-300">Pending final Controller lock</p>
+          </div>
+
+          <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 opacity-60 space-y-1">
+            <div className="flex items-center justify-between text-slate-400 font-bold">
+              <span>Stage 4: Student Release</span>
+              <Lock className="w-4 h-4" />
+            </div>
+            <p className="text-[11px] text-slate-500">Locked until publication</p>
+          </div>
+        </div>
+      </div>
+
+      {/* PRD SEC 58 & 60: Institutional Grade Scheme Configurator Banner */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <Award className="w-4 h-4 text-purple-600" />
+            <h4 className="font-extrabold text-xs text-slate-900">Institutional Grading Scale Configuration (PRD Sec 58)</h4>
+          </div>
+          <p className="text-[11px] text-slate-500 mt-0.5">
+            Active Scale: <strong>CBSE 10-Point Letter Grade</strong> • Cutoffs: A+ (≥90%), A (80-89%), B (70-79%), C (60-69%), D (50-59%), F (&lt;50%)
+          </p>
+        </div>
+        <span className="px-3 py-1 bg-purple-100 text-purple-900 font-extrabold text-xs rounded-xl border border-purple-200 shrink-0">
+          Scale: CBSE Standard (Letter + GPA 4.0)
+        </span>
+      </div>
+
       {/* ── DRAFT / BLOCKED VIEW ──────────────────────────────────── */}
       {(displayPhase === 'draft' || displayPhase === 'blocked') && (
         <>

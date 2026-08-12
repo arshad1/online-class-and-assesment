@@ -27,6 +27,8 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ searchTerm, setSearchTerm }) => {
   const {
+    userRole,
+    setUserRole,
     portalMode,
     setPortalMode,
     activeTab,
@@ -112,24 +114,29 @@ export const Header: React.FC<HeaderProps> = ({ searchTerm, setSearchTerm }) => 
             St. Xavier's International Academy
           </span>
 
-          {/* Role Pill */}
-          <span
-            className={`hidden md:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
-              portalMode === 'teacher'
-                ? 'bg-blue-50 text-blue-700 border-blue-200'
-                : 'bg-emerald-50 text-emerald-800 border-emerald-300'
-            }`}
-          >
-            {portalMode === 'teacher' ? 'Teacher Portal' : 'Parent/Student Portal'}
-          </span>
+          {/* 5-Tier Role Selector Pill */}
+          <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border bg-slate-50 border-slate-200">
+            <span className="text-[10px] font-bold uppercase text-slate-600">Role:</span>
+            <select
+              value={userRole || (portalMode === 'teacher' ? 'teacher' : 'student')}
+              onChange={(e) => setUserRole(e.target.value as any)}
+              className="bg-transparent text-[11px] font-bold text-slate-800 focus:outline-none cursor-pointer"
+            >
+              <option value="admin">System Administrator</option>
+              <option value="coordinator">Exam Coordinator</option>
+              <option value="teacher">Teacher / Examiner</option>
+              <option value="proctor">Invigilator / Proctor</option>
+              <option value="student">Student / Parent Portal</option>
+            </select>
+          </div>
         </div>
         <p className="text-xs text-slate-500 hidden sm:block">{subtitle}</p>
       </div>
 
       {/* Action Controls & Top Bar Items */}
       <div className="flex items-center gap-3">
-        {/* Child Selector Dropdown (When in Parent Mode) */}
-        {portalMode === 'parent_student' && (
+        {/* Child Selector Dropdown (When in Student / Parent Mode) */}
+        {(portalMode === 'parent_student' || userRole === 'student') && (
           <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-xl border border-emerald-200">
             <GraduationCap className="w-4 h-4 text-emerald-600 shrink-0" />
             <div className="text-left">
@@ -163,21 +170,33 @@ export const Header: React.FC<HeaderProps> = ({ searchTerm, setSearchTerm }) => 
           />
         </div>
 
-        {/* Mode Switcher Button */}
-        <button
-          onClick={() => setPortalMode(portalMode === 'teacher' ? 'parent_student' : 'teacher')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs border ${
-            portalMode === 'teacher'
-              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
-              : 'bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200'
-          }`}
-          title="Switch role between Teacher and Parent/Student views"
-        >
-          <ArrowRightLeft className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">
-            Switch to {portalMode === 'teacher' ? 'Parent Portal' : 'Teacher View'}
-          </span>
-        </button>
+        {/* Quick Role Switcher Button */}
+        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-semibold">
+          <button
+            onClick={() => setUserRole('teacher')}
+            className={`px-2.5 py-1 rounded-md transition-all ${
+              userRole === 'teacher' ? 'bg-white text-blue-700 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Teacher
+          </button>
+          <button
+            onClick={() => setUserRole('proctor')}
+            className={`px-2.5 py-1 rounded-md transition-all ${
+              userRole === 'proctor' ? 'bg-white text-amber-700 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Proctor
+          </button>
+          <button
+            onClick={() => setUserRole('student')}
+            className={`px-2.5 py-1 rounded-md transition-all ${
+              userRole === 'student' ? 'bg-white text-emerald-700 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Student
+          </button>
+        </div>
 
         {/* Schedule Exam Button (Only in Teacher Mode) */}
         {portalMode === 'teacher' && (

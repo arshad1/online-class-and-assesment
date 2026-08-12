@@ -185,12 +185,13 @@ export const ExamMonitoringView: React.FC = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-800"
               >
-                <option value="all">All Statuses</option>
-                <option value="active">Green (Active)</option>
-                <option value="warning">Orange (Warning)</option>
-                <option value="suspicious">Red (Suspicious)</option>
-                <option value="submitted">Blue (Submitted)</option>
-                <option value="disconnected">Grey (Disconnected)</option>
+                <option value="all">All Risk Tiers & Statuses</option>
+                <option value="critical">Critical Risk (76-100)</option>
+                <option value="suspicious">Suspicious (51-75)</option>
+                <option value="warning">Monitor Tier (21-50)</option>
+                <option value="active">Normal Tier (0-20)</option>
+                <option value="submitted">Submitted Papers</option>
+                <option value="disconnected">Disconnected</option>
               </select>
             </div>
           </div>

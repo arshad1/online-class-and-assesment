@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useExam } from '../context/ExamContext';
 import { ScheduledExam, QuestionPaperItem } from '../types';
 import { PdfViewer } from '../components/common/PdfViewer';
+import { SystemReadinessModal } from '../components/modals/SystemReadinessModal';
 import {
   Clock,
   ShieldCheck,
@@ -38,6 +39,7 @@ export const AttendExamView: React.FC = () => {
     submitStudentExam,
     studentExamSubmitted,
     setStudentExamSubmitted,
+    examSections,
     setActiveTab,
     setPortalMode,
   } = useExam();
@@ -46,6 +48,14 @@ export const AttendExamView: React.FC = () => {
   const [secondsRemaining, setSecondsRemaining] = useState<number>(7115); // 1 hr 58 min 35 sec
   const [showSubmitConfirmModal, setShowSubmitConfirmModal] = useState<boolean>(false);
   const [previewStudentFileUrl, setPreviewStudentFileUrl] = useState<string | null>(null);
+
+  // Pre-Exam Readiness & Sectional State (PRD Sec 18, 22, 45, 46, 81)
+  const [isReadinessVerified, setIsReadinessVerified] = useState<boolean>(false);
+  const [showReadinessModal, setShowReadinessModal] = useState<boolean>(true);
+  const [activeSectionId, setActiveSectionId] = useState<string>(examSections[0]?.id || 'sec-a');
+  const [lastSavedTimestamp, setLastSavedTimestamp] = useState<string>('Just now');
+  const [isNetworkOnline, setIsNetworkOnline] = useState<boolean>(true);
+  const [isSessionPaused, setIsSessionPaused] = useState<boolean>(false);
 
   // Active exam paper details
   const exam = activeStudentExam || {
@@ -78,14 +88,28 @@ export const AttendExamView: React.FC = () => {
     }
   };
 
-  // Countdown timer
+  // Network online/offline listener (PRD Sec 46)
   useEffect(() => {
-    if (studentExamSubmitted) return;
+    const handleOnline = () => setIsNetworkOnline(true);
+    const handleOffline = () => setIsNetworkOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Countdown timer with pause guard (PRD Sec 81)
+  useEffect(() => {
+    if (studentExamSubmitted || isSessionPaused) return;
     const timer = setInterval(() => {
       setSecondsRemaining((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(timer);
-  }, [studentExamSubmitted]);
+  }, [studentExamSubmitted, isSessionPaused]);
 
   const formatTimer = (totalSec: number) => {
     const hrs = Math.floor(totalSec / 3600);
@@ -237,10 +261,16 @@ export const AttendExamView: React.FC = () => {
 
         {/* Live Timer & Security Banner */}
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-emerald-950/60 rounded-full border border-emerald-700/60 text-emerald-400 text-xs">
-            <ShieldCheck className="w-4 h-4" />
-            <span className="font-semibold text-[11px]">Anti-Cheat System Active</span>
-          </div>
+          <button
+            onClick={() => setShowReadinessModal(true)}
+            className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-blue-950/60 hover:bg-blue-900/60 rounded-full border border-blue-700/60 text-blue-300 text-xs transition-all cursor-pointer"
+            title="View or re-run system diagnostic & identity check"
+          >
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span className="font-semibold text-[11px]">
+              {isReadinessVerified ? 'Readiness Verified ✓' : 'Run System Check'}
+            </span>
+          </button>
 
           <div className="px-4 py-1.5 bg-slate-800 rounded-xl border border-slate-700 flex items-center gap-2">
             <Clock className="w-4 h-4 text-amber-400 animate-pulse" />
@@ -250,6 +280,65 @@ export const AttendExamView: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* PRD SEC 18 & 41: Sectional Navigation & PRD SEC 45 & 46: Auto-Save / Offline Recovery Bar */}
+      <div className="bg-slate-800 text-white px-6 py-2 border-b border-slate-700 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        {/* Section Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto">
+          <span className="text-[10px] font-bold uppercase text-slate-400 shrink-0">Sections:</span>
+          {examSections.map((sec) => (
+            <button
+              key={sec.id}
+              onClick={() => setActiveSectionId(sec.id)}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 ${
+                sec.id === activeSectionId
+                  ? 'bg-blue-600 text-white border-blue-400 shadow-sm'
+                  : 'bg-slate-900/60 hover:bg-slate-700 text-slate-300 border-slate-700'
+              }`}
+            >
+              <span>{sec.title}</span>
+              <span className="text-[9px] bg-slate-950 px-1.5 py-0.5 rounded text-blue-200">
+                {sec.maxMarks}m
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Auto-Save & Network Telemetry Status */}
+        <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-1.5 text-slate-300">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[11px] font-semibold">Auto-saved to local cache</span>
+          </div>
+
+          <div className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 ${
+            isNetworkOnline
+              ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
+              : 'bg-amber-950 text-amber-300 border-amber-800 animate-pulse'
+          }`}>
+            <Wifi className="w-3 h-3" />
+            <span>{isNetworkOnline ? 'Network Online' : 'Offline Recovery Active'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Offline Network Disruption Recovery Alert Banner (PRD Sec 46) */}
+      {!isNetworkOnline && (
+        <div className="bg-amber-500 text-amber-950 px-6 py-2 text-xs font-black flex items-center justify-between shadow-md shrink-0">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-950" />
+            <span>
+              INTERNET CONNECTIVITY TEMPORARILY LOST — Your answers are being safely backed up to local browser storage. Auto-sync will resume immediately when connection is restored.
+            </span>
+          </div>
+          <button
+            onClick={() => setIsNetworkOnline(true)}
+            className="px-2 py-0.5 bg-amber-950 text-white text-[10px] rounded font-bold hover:bg-amber-900"
+          >
+            Simulate Reconnection
+          </button>
+        </div>
+      )}
 
       {/* Main Examination Layout Body */}
       <div className="flex-1 flex overflow-hidden min-h-0">
@@ -676,6 +765,46 @@ export const AttendExamView: React.FC = () => {
           </div>
         </div>
       )}
+      {/* PRD SEC 81: Exam Session Pause Screen Overlay */}
+      {isSessionPaused && (
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-6 text-white animate-fade-in">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-8 max-w-md w-full text-center space-y-5 shadow-2xl">
+            <div className="w-16 h-16 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto border border-amber-500/30">
+              <RotateCcw className="w-8 h-8 animate-spin" />
+            </div>
+            <div className="space-y-2">
+              <span className="px-3 py-1 bg-amber-500/20 text-amber-300 font-extrabold text-xs rounded-full border border-amber-500/30">
+                SESSION PAUSED BY INVIGILATOR (PRD SEC 81)
+              </span>
+              <h3 className="text-xl font-black text-white">Examination Session Paused</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Your examination timer has been temporarily halted by the teacher/proctor. All answered progress has been securely cached. Please wait for invigilator clearance.
+              </p>
+            </div>
+            <div className="pt-2">
+              <button
+                onClick={() => setIsSessionPaused(false)}
+                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all"
+              >
+                Resume Exam Session
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pre-Exam Hardware & Identity Verification Diagnostic Modal */}
+      <SystemReadinessModal
+        isOpen={showReadinessModal}
+        onClose={() => setShowReadinessModal(false)}
+        onComplete={(report) => {
+          setIsReadinessVerified(true);
+          setShowReadinessModal(false);
+        }}
+        studentName={selectedChild?.name || 'Aarav Sharma'}
+        studentPhoto={selectedChild?.avatar || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80'}
+        admissionNo={selectedChild?.admissionNo || 'ADM-2024-001'}
+      />
     </div>
   );
 };

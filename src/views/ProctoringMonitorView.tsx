@@ -19,11 +19,11 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { useExam } from '../context/ExamContext';
-import { Student } from '../types';
+import { Student, getRiskScoreSummary } from '../types';
 import { StudentDetailDrawer } from '../components/proctoring/StudentDetailDrawer';
 
 export const ProctoringMonitorView: React.FC = () => {
-  const { students, setSelectedStudent, selectedStudent } = useExam();
+  const { students, setSelectedStudent, selectedStudent, addToast, sendWarningToStudent, pauseStudentExam } = useExam();
 
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'compact' | 'alert-only'>('grid');
@@ -178,26 +178,27 @@ export const ProctoringMonitorView: React.FC = () => {
         }`}
       >
         {filteredStudents.map((student) => {
-          // Border color calculation
-          let borderColor = 'border-emerald-400 hover:border-emerald-500';
-          let badgeBg = 'bg-emerald-500 text-white';
+          const riskSummary = getRiskScoreSummary(student.riskScore);
 
-          if (student.riskScore >= 50) {
+          let borderColor = 'border-emerald-400 hover:border-emerald-500';
+          if (riskSummary.tier === 'critical') {
             borderColor = 'border-red-500 hover:border-red-600 ring-2 ring-red-500/20';
-            badgeBg = 'bg-red-600 text-white animate-pulse';
-          } else if (student.riskScore >= 25) {
+          } else if (riskSummary.tier === 'suspicious') {
             borderColor = 'border-amber-400 hover:border-amber-500';
-            badgeBg = 'bg-amber-500 text-white';
+          } else if (riskSummary.tier === 'monitor') {
+            borderColor = 'border-blue-400 hover:border-blue-500';
           }
 
           return (
             <div
               key={student.id}
-              onClick={() => setSelectedStudent(student)}
-              className={`bg-white rounded-xl border-2 ${borderColor} shadow-xs hover:shadow-lg transition-all cursor-pointer overflow-hidden flex flex-col justify-between group`}
+              className={`bg-white rounded-xl border-2 ${borderColor} shadow-xs hover:shadow-lg transition-all overflow-hidden flex flex-col justify-between group`}
             >
               {/* Webcam Feed Placeholder */}
-              <div className="relative bg-slate-950 aspect-video flex items-center justify-center overflow-hidden">
+              <div
+                onClick={() => setSelectedStudent(student)}
+                className="relative bg-slate-950 aspect-video flex items-center justify-center overflow-hidden cursor-pointer"
+              >
                 <img
                   src={student.photoUrl}
                   alt={student.name}
@@ -225,10 +226,10 @@ export const ProctoringMonitorView: React.FC = () => {
                   </div>
                 )}
 
-                {/* Top Overlay Risk Badge */}
+                {/* PRD SEC 36: Dynamic Aggregated Risk Score Badge */}
                 <div className="absolute top-2 left-2 flex items-center gap-1.5">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase shadow-sm ${badgeBg}`}>
-                    Risk: {student.riskScore}
+                  <span className={`px-2.5 py-0.5 rounded text-[10px] uppercase shadow-sm border ${riskSummary.colorBadgeClass}`}>
+                    {riskSummary.label} (Score: {student.riskScore})
                   </span>
                 </div>
 
@@ -256,7 +257,7 @@ export const ProctoringMonitorView: React.FC = () => {
               </div>
 
               {/* Card Metadata & Violation Details */}
-              <div className="p-3.5 space-y-2">
+              <div className="p-3.5 space-y-2.5">
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <span className="font-semibold text-slate-700">{student.admissionNo}</span>
                   <span>Q{student.activeQuestion}/{student.totalQuestions} ({student.progressPct}%)</span>
@@ -274,6 +275,39 @@ export const ProctoringMonitorView: React.FC = () => {
                     <span>Clean session — No violations</span>
                   </div>
                 )}
+
+                {/* PRD SEC 40: Live Proctor Warning & Quick Controls */}
+                <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      sendWarningToStudent(student.id, 'Please maintain face alignment and focus on screen.');
+                      addToast('Warning Dispatched', `Issued live warning to ${student.name}`, 'warning');
+                    }}
+                    className="flex-1 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg text-[10px] font-bold transition-all text-center"
+                  >
+                    Warn
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      pauseStudentExam(student.id);
+                      addToast('Exam Paused', `Paused examination session for ${student.name}`, 'info');
+                    }}
+                    className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold transition-all"
+                  >
+                    Pause
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedStudent(student);
+                    }}
+                    className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-lg text-[10px] font-bold transition-all"
+                  >
+                    Inspect
+                  </button>
+                </div>
               </div>
             </div>
           );
