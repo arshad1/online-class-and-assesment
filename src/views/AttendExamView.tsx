@@ -24,6 +24,7 @@ import {
   Trash2,
   Eye,
   FileText,
+  Wifi,
 } from 'lucide-react';
 
 export const AttendExamView: React.FC = () => {

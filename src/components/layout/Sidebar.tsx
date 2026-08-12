@@ -23,6 +23,7 @@ import { ActiveNavTab } from '../../types';
 
 export const Sidebar: React.FC = () => {
   const {
+    userRole,
     portalMode,
     setPortalMode,
     activeTab,
@@ -105,20 +106,44 @@ export const Sidebar: React.FC = () => {
       {/* Brand Header */}
       <div className="p-4 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-xl text-white shadow-lg flex items-center justify-center ${portalMode === 'teacher' ? 'bg-blue-600 shadow-blue-500/20' : 'bg-emerald-600 shadow-emerald-500/20'}`}>
+          <div className={`p-2.5 rounded-xl text-white shadow-lg flex items-center justify-center ${
+            portalMode === 'parent_student'
+              ? 'bg-emerald-600 shadow-emerald-500/20'
+              : userRole === 'proctor'
+              ? 'bg-amber-600 shadow-amber-500/20'
+              : 'bg-blue-600 shadow-blue-500/20'
+          }`}>
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-bold text-base text-white tracking-wide">
-                {portalMode === 'teacher' ? 'EduExam Pro' : 'EduExam Parent'}
+                {portalMode === 'parent_student'
+                  ? 'EduExam Parent'
+                  : userRole === 'proctor'
+                  ? 'EduExam Proctor'
+                  : 'EduExam Pro'}
               </span>
-              <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border uppercase ${portalMode === 'teacher' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'}`}>
-                {portalMode === 'teacher' ? 'Teacher' : 'Parent'}
+              <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border uppercase ${
+                portalMode === 'parent_student'
+                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                  : userRole === 'proctor'
+                  ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                  : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+              }`}>
+                {portalMode === 'parent_student'
+                  ? 'Parent'
+                  : userRole === 'proctor'
+                  ? 'Proctor'
+                  : 'Teacher'}
               </span>
             </div>
             <p className="text-[11px] text-slate-400">
-              {portalMode === 'teacher' ? 'Teacher Exam Portal' : 'Parent & Student Portal'}
+              {portalMode === 'parent_student'
+                ? 'Parent & Student Portal'
+                : userRole === 'proctor'
+                ? 'Invigilator & Proctor Portal'
+                : 'Teacher Exam Portal'}
             </p>
           </div>
         </div>
@@ -183,7 +208,11 @@ export const Sidebar: React.FC = () => {
       {/* Navigation Modules */}
       <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
         <div className="px-3 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-          {portalMode === 'teacher' ? 'Core Teacher Modules' : 'Parent & Student Portal'}
+          {portalMode === 'parent_student'
+            ? 'Parent & Student Portal'
+            : userRole === 'proctor'
+            ? 'Proctor & Invigilator Modules'
+            : 'Core Teacher Modules'}
         </div>
 
         {(portalMode === 'teacher' ? teacherNavItems : parentNavItems).map((item) => {

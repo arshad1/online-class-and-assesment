@@ -199,8 +199,8 @@ export const ReportsView: React.FC = () => {
             </div>
 
             {/* High-Risk Candidate Ranking Table */}
-            <div className="pt-4 border-t border-slate-100">
-              <h4 className="text-xs font-bold text-slate-800 mb-2">High-Risk Candidate Audit Table</h4>
+            <div className="pt-4 border-t border-slate-100 space-y-2">
+              <h4 className="text-xs font-bold text-slate-800">High-Risk Candidate Audit Table (PRD Sec 115)</h4>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 text-slate-500 font-semibold">
@@ -236,6 +236,34 @@ export const ReportsView: React.FC = () => {
                     </tr>
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            {/* PRD SEC 122 & 125: Immutable System Governance Audit Log Table */}
+            <div className="pt-4 border-t border-slate-100 space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                  Institutional Governance Audit Log (PRD Sec 122)
+                </h4>
+                <span className="text-[10px] text-slate-400 font-mono">System Hash: sha256:8f92a1...</span>
+              </div>
+              <div className="bg-slate-950 text-slate-200 rounded-xl p-3 font-mono text-[11px] space-y-2 overflow-x-auto">
+                <div className="flex items-center justify-between p-2 bg-slate-900 rounded border border-slate-800">
+                  <span className="text-emerald-400">[2026-08-12 11:45:18] ROLE_SWITCH</span>
+                  <span className="text-slate-300">User: Admin • Role changed to Coordinator</span>
+                  <span className="text-slate-500">IP: 192.168.1.104</span>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-slate-900 rounded border border-slate-800">
+                  <span className="text-blue-400">[2026-08-12 11:38:05] EXAM_VALIDATED</span>
+                  <span className="text-slate-300">Exam 'Grade 10 Midterm' verified section equivalence</span>
+                  <span className="text-slate-500">IP: 192.168.1.104</span>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-slate-900 rounded border border-slate-800">
+                  <span className="text-amber-400">[2026-08-12 11:14:22] WARNING_DISPATCHED</span>
+                  <span className="text-slate-300">Proctor issued warning to candidate Aisha Rahman</span>
+                  <span className="text-slate-500">IP: 192.168.1.104</span>
+                </div>
               </div>
             </div>
           </div>

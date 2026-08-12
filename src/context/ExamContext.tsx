@@ -279,10 +279,16 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUserRoleState(role);
     if (role === 'teacher' || role === 'admin' || role === 'coordinator') {
       setPortalModeState('teacher');
+      setActiveTab('dashboard');
+      addToast('Role Changed', 'Switched to Teacher role context', 'info');
     } else if (role === 'student') {
       setPortalModeState('parent_student');
+      setActiveTab('parent-dashboard');
+      addToast('Role Changed', 'Switched to Student & Parent Portal context', 'info');
     } else if (role === 'proctor') {
-      setPortalModeState('proctor');
+      setPortalModeState('teacher');
+      setActiveTab('exam-monitoring');
+      addToast('Role Changed', 'Switched to Invigilator / Proctor monitoring workspace', 'info');
     }
   };
 
