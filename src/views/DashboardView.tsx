@@ -13,18 +13,21 @@ import {
   CheckCircle2,
   AlertCircle,
   BookOpen,
+  Video,
 } from 'lucide-react';
 
 export const DashboardView: React.FC = () => {
   const {
     setActiveTab,
     scheduledExams,
+    onlineClasses,
     monitoringStudents,
     studentSubmissions,
     recentActivities,
     setShowScheduleModal,
   } = useExam();
 
+  const liveClassesCount = onlineClasses.filter((c) => c.status === 'live').length;
   const examsToday = scheduledExams.filter((e) => e.examDate === '2026-08-10' || e.status === 'live').length;
   const upcomingExams = scheduledExams.filter((e) => e.status === 'scheduled').length;
   const liveExams = scheduledExams.filter((e) => e.status === 'live').length;
@@ -45,21 +48,31 @@ export const DashboardView: React.FC = () => {
             <span className="text-xs text-blue-200">St. Xavier's International Academy</span>
           </div>
           <h2 className="text-xl font-extrabold tracking-tight">
-            Online Exam Management Dashboard
+            Online Exam & Live Class Dashboard
           </h2>
           <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-            Question papers are pre-linked from the Question Paper Generator. Manage scheduling, real-time candidate proctoring, evaluation, and result publication.
+            Schedule virtual lectures with WebRTC/Meet streaming, configure proctoring controls, evaluate assessments, and publish student scores.
           </p>
         </div>
 
-        {/* Quick Action Create Exam Button */}
-        <button
-          onClick={() => setActiveTab('create-exam-basic')}
-          className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 shrink-0 transition-all transform hover:-translate-y-0.5"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Create Online Exam</span>
-        </button>
+        {/* Quick Actions Header Buttons */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setActiveTab('create-online-class')}
+            className="px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold rounded-xl shadow-md backdrop-blur-xs flex items-center gap-2 transition-all"
+          >
+            <Video className="w-4 h-4 text-emerald-400" />
+            <span>+ Online Class</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('create-exam-basic')}
+            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 transition-all transform hover:-translate-y-0.5"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Exam</span>
+          </button>
+        </div>
       </div>
 
       {/* 5 Key Metric Cards */}

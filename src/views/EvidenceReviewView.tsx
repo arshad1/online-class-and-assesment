@@ -47,8 +47,10 @@ export const EvidenceReviewView: React.FC = () => {
   };
   const handleNext = () => {
     if (currentIndex < alerts.length - 1) setSelectedAlert(alerts[currentIndex + 1]);
+  };
+
   const handleExportForensicReport = () => {
-    const csvContent = `INCIDENT AUDIT REPORT (PRD SEC 76)\nAlert ID: ${activeAlert.id}\nStudent Name: ${activeAlert.studentName}\nRoll No: ${activeAlert.rollNo}\nViolation Type: ${activeAlert.violationType}\nSeverity: ${activeAlert.severity}\nTimestamp: ${activeAlert.timestamp}\nReviewer Note: ${reviewerComment || 'Proctor reviewed video telemetry frame'}\nStatus: ${activeAlert.status}\n`;
+    const csvContent = `INCIDENT AUDIT REPORT (PRD SEC 76)\nAlert ID: ${activeAlert.id}\nStudent Name: ${activeAlert.studentName}\nAdmission No: ${activeAlert.admissionNo}\nViolation Type: ${activeAlert.violationType}\nRisk Points: ${activeAlert.riskPoints}\nTimestamp: ${activeAlert.timestamp}\nReviewer Note: ${reviewerComment || 'Proctor reviewed video telemetry frame'}\nStatus: ${activeAlert.status}\n`;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

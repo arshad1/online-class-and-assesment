@@ -17,6 +17,7 @@ import {
   Paperclip,
   Calculator,
   UserCheck,
+  Video,
 } from 'lucide-react';
 import { useExam } from '../../context/ExamContext';
 import { ActiveNavTab } from '../../types';
@@ -28,6 +29,7 @@ export const Sidebar: React.FC = () => {
     setPortalMode,
     activeTab,
     setActiveTab,
+    onlineClasses,
     monitoringStudents,
     studentSubmissions,
     evaluationDashboardItems,
@@ -36,6 +38,8 @@ export const Sidebar: React.FC = () => {
     selectedChild,
     setSelectedChildId,
   } = useExam();
+
+  const liveClassesCount = onlineClasses.filter((c) => c.status === 'live').length;
 
   const liveAlertCount = monitoringStudents.filter(
     (s) => s.examStatus === 'warning' || s.examStatus === 'suspicious'
@@ -49,8 +53,15 @@ export const Sidebar: React.FC = () => {
     (i) => i.evaluationStatus === 'Not Started' || i.evaluationStatus === 'In Progress'
   ).length;
 
-  const teacherNavItems: { id: ActiveNavTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: string }[] = [
+  const teacherNavItems: { id: ActiveNavTab; label: string; icon: React.ReactNode; badge?: number | string; badgeColor?: string }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+    {
+      id: 'online-classes',
+      label: 'Online Classes',
+      icon: <Video className="w-4 h-4" />,
+      badge: liveClassesCount > 0 ? 'LIVE' : undefined,
+      badgeColor: 'bg-red-600 text-white font-extrabold animate-pulse',
+    },
     { id: 'exam-scheduling', label: 'Exam Scheduling', icon: <CalendarClock className="w-4 h-4" /> },
     {
       id: 'exam-monitoring',
@@ -94,8 +105,15 @@ export const Sidebar: React.FC = () => {
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
   ];
 
-  const parentNavItems: { id: ActiveNavTab; label: string; icon: React.ReactNode; badge?: number; badgeColor?: string }[] = [
+  const parentNavItems: { id: ActiveNavTab; label: string; icon: React.ReactNode; badge?: number | string; badgeColor?: string }[] = [
     { id: 'parent-dashboard', label: 'Children Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
+    {
+      id: 'student-online-classes',
+      label: 'Live Classes',
+      icon: <Video className="w-4 h-4" />,
+      badge: liveClassesCount > 0 ? 'LIVE' : undefined,
+      badgeColor: 'bg-red-600 text-white font-extrabold animate-pulse',
+    },
     { id: 'student-exams-list', label: 'Exams & Schedule', icon: <CalendarClock className="w-4 h-4" /> },
     { id: 'attend-exam', label: 'Attend Active Exam', icon: <Play className="w-4 h-4" /> },
     { id: 'student-results', label: 'Report Cards & Results', icon: <Award className="w-4 h-4" /> },

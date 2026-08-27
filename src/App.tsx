@@ -6,6 +6,9 @@ import { ToastContainer } from './components/common/ToastContainer';
 
 // Teacher Views
 import { DashboardView } from './views/DashboardView';
+import { OnlineClassesListView } from './views/OnlineClassesListView';
+import { CreateOnlineClassView } from './views/CreateOnlineClassView';
+import { LiveClassroomView } from './views/LiveClassroomView';
 import { ExamSchedulingView } from './views/ExamSchedulingView';
 import { ExamMonitoringView } from './views/ExamMonitoringView';
 import { AssessmentView } from './views/AssessmentView';
@@ -27,6 +30,7 @@ import { ResultCalculationReviewView } from './views/ResultCalculationReviewView
 
 // Parent & Student Views
 import { ParentDashboardView } from './views/ParentDashboardView';
+import { StudentOnlineClassesView } from './views/StudentOnlineClassesView';
 import { StudentExamsListView } from './views/StudentExamsListView';
 import { AttendExamView } from './views/AttendExamView';
 import { StudentResultsView } from './views/StudentResultsView';
@@ -55,6 +59,16 @@ const MainContent: React.FC = () => {
     );
   }
 
+  // When teacher/student is in live video classroom studio, render full screen WebRTC broadcast environment
+  if (activeTab === 'live-classroom') {
+    return (
+      <div className="h-screen w-screen overflow-hidden bg-slate-950 font-sans">
+        <LiveClassroomView />
+        <ToastContainer />
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-100 font-sans">
       {/* Sidebar Navigation */}
@@ -69,6 +83,8 @@ const MainContent: React.FC = () => {
         <main className="flex-1 overflow-y-auto bg-slate-100">
           {/* Teacher Views */}
           {activeTab === 'dashboard' && <DashboardView />}
+          {activeTab === 'online-classes' && <OnlineClassesListView />}
+          {activeTab === 'create-online-class' && <CreateOnlineClassView />}
           {activeTab === 'exam-scheduling' && <ExamSchedulingView />}
           {activeTab === 'create-exam-basic' && <ExamBasicDetailsView />}
           {activeTab === 'create-exam-recipients' && <RecipientSelectionView />}
@@ -90,6 +106,7 @@ const MainContent: React.FC = () => {
 
           {/* Parent & Student Views */}
           {activeTab === 'parent-dashboard' && <ParentDashboardView />}
+          {activeTab === 'student-online-classes' && <StudentOnlineClassesView />}
           {activeTab === 'student-exams-list' && <StudentExamsListView />}
           {activeTab === 'student-results' && <StudentResultsView />}
         </main>

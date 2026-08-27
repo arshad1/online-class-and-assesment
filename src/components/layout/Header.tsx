@@ -51,6 +51,21 @@ export const Header: React.FC<HeaderProps> = ({ searchTerm, setSearchTerm }) => 
           title: 'Online Exam Dashboard',
           subtitle: 'Overview of scheduled, live, and completed examination sessions',
         };
+      case 'online-classes':
+        return {
+          title: 'Online Classes & Virtual Lectures',
+          subtitle: 'Manage live classrooms, timetable schedules, attendance and course materials',
+        };
+      case 'create-online-class':
+        return {
+          title: 'Create & Schedule Online Class',
+          subtitle: 'Configure curriculum topics, meeting platform, student permissions and materials',
+        };
+      case 'live-classroom':
+        return {
+          title: 'Live Online Classroom Studio',
+          subtitle: 'Real-time interactive WebRTC lecture with digital whiteboard and chat',
+        };
       case 'exam-scheduling':
         return {
           title: 'Exam Scheduling',
@@ -80,6 +95,11 @@ export const Header: React.FC<HeaderProps> = ({ searchTerm, setSearchTerm }) => 
         return {
           title: 'Parent & Student Dashboard',
           subtitle: `Overview for ${parentAccount.parentName} • Active Student: ${selectedChild.name} (${selectedChild.class})`,
+        };
+      case 'student-online-classes':
+        return {
+          title: 'Live Classes & Virtual Lecture Portal',
+          subtitle: `Attend interactive live lectures and download class notes for ${selectedChild.name}`,
         };
       case 'student-exams-list':
         return {

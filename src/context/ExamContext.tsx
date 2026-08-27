@@ -37,6 +37,11 @@ import {
   UserRole,
   StudentAccommodation,
   ExamSection,
+  OnlineClass,
+  CreateOnlineClassFormData,
+  LiveInClassAssessment,
+  LiveAssessmentSubmission,
+  LiveAssessmentQuestion,
 } from '../types';
 import {
   mockStudents as initialStudents,
@@ -59,6 +64,8 @@ import {
   mockCandidateResultSummary,
   mockAccommodations as initialAccommodations,
   mockExamSections as initialExamSections,
+  mockOnlineClasses as initialOnlineClasses,
+  mockLiveAssessments as initialLiveAssessments,
 } from '../data/mockData';
 
 export interface ToastMessage {
@@ -240,6 +247,33 @@ interface ExamContextType {
   addToast: (title: string, description: string, type?: ToastMessage['type']) => void;
   removeToast: (id: string) => void;
 
+  // Online Classes & Virtual Lectures
+  onlineClasses: OnlineClass[];
+  activeLiveClass: OnlineClass | null;
+  setActiveLiveClass: (c: OnlineClass | null) => void;
+  addOnlineClass: (newClass: Omit<OnlineClass, 'id' | 'createdAt'>) => string;
+  updateOnlineClass: (id: string, updates: Partial<OnlineClass>) => void;
+  deleteOnlineClass: (id: string) => void;
+  duplicateOnlineClass: (id: string) => void;
+  startLiveClass: (id: string) => void;
+  endLiveClass: (id: string) => void;
+
+  // Live In-Class Assessment & Interactive Quizzes
+  liveAssessments: LiveInClassAssessment[];
+  activeLiveAssessment: LiveInClassAssessment | null;
+  setActiveLiveAssessment: (ass: LiveInClassAssessment | null) => void;
+  launchLiveAssessment: (assessment: LiveInClassAssessment) => void;
+  submitLiveStudentAssessment: (submission: LiveAssessmentSubmission) => void;
+  gradeLiveStudentSubmission: (assessmentId: string, submissionId: string, updates: Partial<LiveAssessmentSubmission>) => void;
+  closeLiveAssessment: (assessmentId: string) => void;
+  publishAssessmentLeaderboard: (assessmentId: string) => void;
+  showStudentAssessmentModal: boolean;
+  setShowStudentAssessmentModal: (show: boolean) => void;
+  showTeacherAssessmentReviewModal: boolean;
+  setShowTeacherAssessmentReviewModal: (show: boolean) => void;
+  showAssessmentCreatorModal: boolean;
+  setShowAssessmentCreatorModal: (show: boolean) => void;
+
   // Teacher Actions
   scheduleNewExam: (exam: ScheduledExam) => void;
   publishCurrentExam: () => void;
@@ -330,6 +364,185 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [activeStudentExam, setActiveStudentExam] = useState<ScheduledExam | null>(null);
   const [studentAnswers, setStudentAnswers] = useState<Record<string, { selectedOptionIndex?: number; textAnswer?: string; isMarkedForReview?: boolean }>>({});
   const [studentExamSubmitted, setStudentExamSubmitted] = useState<boolean>(false);
+  // Online Classes & Virtual Lectures State
+  const [onlineClasses, setOnlineClasses] = useState<OnlineClass[]>(initialOnlineClasses);
+  const [activeLiveClass, setActiveLiveClass] = useState<OnlineClass | null>(
+    initialOnlineClasses.find((c) => c.status === 'live') || null
+  );
+
+  const addOnlineClass = (newClassData: Omit<OnlineClass, 'id' | 'createdAt'>): string => {
+    const id = 'cls-' + Date.now().toString(36);
+    const newClass: OnlineClass = {
+      ...newClassData,
+      id,
+      createdAt: new Date().toLocaleString(),
+    };
+    setOnlineClasses((prev) => [newClass, ...prev]);
+    addToast('Online Class Created', `"${newClass.title}" scheduled for ${newClass.date} at ${newClass.startTime}`, 'success');
+    return id;
+  };
+
+  const updateOnlineClass = (id: string, updates: Partial<OnlineClass>) => {
+    setOnlineClasses((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
+    );
+    if (activeLiveClass && activeLiveClass.id === id) {
+      setActiveLiveClass((prev) => (prev ? { ...prev, ...updates } : null));
+    }
+    addToast('Class Updated', 'Online class details have been updated', 'info');
+  };
+
+  const deleteOnlineClass = (id: string) => {
+    const cls = onlineClasses.find((c) => c.id === id);
+    setOnlineClasses((prev) => prev.filter((c) => c.id !== id));
+    if (activeLiveClass && activeLiveClass.id === id) {
+      setActiveLiveClass(null);
+    }
+    addToast('Class Deleted', cls ? `"${cls.title}" has been removed.` : 'Class removed.', 'danger');
+  };
+
+  const duplicateOnlineClass = (id: string) => {
+    const target = onlineClasses.find((c) => c.id === id);
+    if (!target) return;
+    const newId = 'cls-' + Date.now().toString(36);
+    const duplicated: OnlineClass = {
+      ...target,
+      id: newId,
+      title: `${target.title} (Copy)`,
+      status: 'scheduled',
+      liveAttendanceCount: 0,
+      createdAt: new Date().toLocaleString(),
+    };
+    setOnlineClasses((prev) => [duplicated, ...prev]);
+    addToast('Class Duplicated', `Created copy of "${target.title}"`, 'success');
+  };
+
+  const startLiveClass = (id: string) => {
+    const cls = onlineClasses.find((c) => c.id === id);
+    if (!cls) return;
+    updateOnlineClass(id, { status: 'live' });
+    setActiveLiveClass({ ...cls, status: 'live' });
+    setActiveTab('live-classroom');
+    addToast('Live Class Started', `Broadcast session is now LIVE for "${cls.title}"`, 'success');
+  };
+
+  const endLiveClass = (id: string) => {
+    updateOnlineClass(id, { status: 'completed' });
+    if (activeLiveClass?.id === id) {
+      setActiveLiveClass((prev) => (prev ? { ...prev, status: 'completed' } : null));
+    }
+    addToast('Live Class Concluded', 'Session ended and recorded for student portal review.', 'info');
+    setActiveTab('online-classes');
+  };
+
+  // Live In-Class Assessment State & Methods
+  const [liveAssessments, setLiveAssessments] = useState<LiveInClassAssessment[]>(initialLiveAssessments);
+  const [activeLiveAssessment, setActiveLiveAssessment] = useState<LiveInClassAssessment | null>(
+    initialLiveAssessments[0] || null
+  );
+  const [showStudentAssessmentModal, setShowStudentAssessmentModal] = useState<boolean>(false);
+  const [showTeacherAssessmentReviewModal, setShowTeacherAssessmentReviewModal] = useState<boolean>(false);
+  const [showAssessmentCreatorModal, setShowAssessmentCreatorModal] = useState<boolean>(false);
+
+  const launchLiveAssessment = (assessment: LiveInClassAssessment) => {
+    setLiveAssessments((prev) => {
+      const idx = prev.findIndex((a) => a.id === assessment.id);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = {
+          ...assessment,
+          status: 'active',
+          launchedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        return copy;
+      }
+      return [
+        {
+          ...assessment,
+          status: 'active',
+          launchedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+        ...prev,
+      ];
+    });
+    setActiveLiveAssessment(assessment);
+    addToast('Assessment Dispatched', `"${assessment.title}" broadcasted to live classroom chat!`, 'success');
+  };
+
+  const submitLiveStudentAssessment = (submission: LiveAssessmentSubmission) => {
+    setLiveAssessments((prev) =>
+      prev.map((ass) => {
+        if (ass.id === submission.assessmentId) {
+          const filteredSubs = ass.submissions.filter((s) => s.studentId !== submission.studentId);
+          return { ...ass, submissions: [submission, ...filteredSubs] };
+        }
+        return ass;
+      })
+    );
+    if (activeLiveAssessment && activeLiveAssessment.id === submission.assessmentId) {
+      setActiveLiveAssessment((prev) => {
+        if (!prev) return null;
+        const filteredSubs = prev.submissions.filter((s) => s.studentId !== submission.studentId);
+        return { ...prev, submissions: [submission, ...filteredSubs] };
+      });
+    }
+    addToast(
+      'Assessment Submitted',
+      `Score: ${submission.totalScore}/${submission.maxMarks} (${submission.percentage}%)`,
+      'success'
+    );
+  };
+
+  const gradeLiveStudentSubmission = (
+    assessmentId: string,
+    submissionId: string,
+    updates: Partial<LiveAssessmentSubmission>
+  ) => {
+    setLiveAssessments((prev) =>
+      prev.map((ass) => {
+        if (ass.id === assessmentId) {
+          const updatedSubs = ass.submissions.map((s) =>
+            s.id === submissionId ? { ...s, ...updates } : s
+          );
+          return { ...ass, submissions: updatedSubs };
+        }
+        return ass;
+      })
+    );
+    if (activeLiveAssessment && activeLiveAssessment.id === assessmentId) {
+      setActiveLiveAssessment((prev) => {
+        if (!prev) return null;
+        const updatedSubs = prev.submissions.map((s) =>
+          s.id === submissionId ? { ...s, ...updates } : s
+        );
+        return { ...prev, submissions: updatedSubs };
+      });
+    }
+    addToast('Evaluation Updated', 'Marks and feedback saved for student.', 'info');
+  };
+
+  const closeLiveAssessment = (assessmentId: string) => {
+    setLiveAssessments((prev) =>
+      prev.map((ass) => (ass.id === assessmentId ? { ...ass, status: 'closed' } : ass))
+    );
+    if (activeLiveAssessment && activeLiveAssessment.id === assessmentId) {
+      setActiveLiveAssessment((prev) => (prev ? { ...prev, status: 'closed' } : null));
+    }
+    addToast('Assessment Closed', 'Live assessment submissions are now locked.', 'info');
+  };
+
+  const publishAssessmentLeaderboard = (assessmentId: string) => {
+    const ass = liveAssessments.find((a) => a.id === assessmentId);
+    if (!ass) return;
+    setLiveAssessments((prev) =>
+      prev.map((a) => (a.id === assessmentId ? { ...a, status: 'published' } : a))
+    );
+    addToast(
+      'Scoreboard Published',
+      `Shared live assessment solutions & leaderboard with classroom!`,
+      'success'
+    );
+  };
 
   // Legacy States
   const [students, setStudents] = useState<Student[]>(initialStudents);
@@ -1306,6 +1519,33 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toasts,
         addToast,
         removeToast,
+
+        // Online Classes & Virtual Lectures
+        onlineClasses,
+        activeLiveClass,
+        setActiveLiveClass,
+        addOnlineClass,
+        updateOnlineClass,
+        deleteOnlineClass,
+        duplicateOnlineClass,
+        startLiveClass,
+        endLiveClass,
+
+        // Live In-Class Assessment
+        liveAssessments,
+        activeLiveAssessment,
+        setActiveLiveAssessment,
+        launchLiveAssessment,
+        submitLiveStudentAssessment,
+        gradeLiveStudentSubmission,
+        closeLiveAssessment,
+        publishAssessmentLeaderboard,
+        showStudentAssessmentModal,
+        setShowStudentAssessmentModal,
+        showTeacherAssessmentReviewModal,
+        setShowTeacherAssessmentReviewModal,
+        showAssessmentCreatorModal,
+        setShowAssessmentCreatorModal,
 
         scheduleNewExam,
         updateExamStatus,

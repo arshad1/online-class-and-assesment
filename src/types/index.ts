@@ -304,6 +304,9 @@ export interface ResultApprovalState {
 
 export type ActiveNavTab =
   | 'dashboard'
+  | 'online-classes'
+  | 'create-online-class'
+  | 'live-classroom'
   | 'exam-scheduling'
   | 'exam-monitoring'
   | 'assessment'
@@ -311,6 +314,7 @@ export type ActiveNavTab =
   | 'settings'
   // Parent & Student Portal Tabs
   | 'parent-dashboard'
+  | 'student-online-classes'
   | 'student-exams-list'
   | 'attend-exam'
   | 'student-results'
@@ -905,3 +909,181 @@ export interface ParentAccount {
   phone: string;
   children: ChildStudent[];
 }
+
+// -------------------------------------------------------------
+// Online Class & Virtual Lecture Types
+// -------------------------------------------------------------
+
+export type OnlineClassPlatform = 'in_app' | 'google_meet' | 'zoom' | 'ms_teams';
+export type OnlineClassStatus = 'scheduled' | 'live' | 'completed' | 'cancelled';
+export type OnlineClassRecurrence = 'none' | 'daily' | 'weekly' | 'mwf' | 'tts' | 'custom';
+
+export interface OnlineClassMaterial {
+  id: string;
+  title: string;
+  type: 'pdf' | 'slide' | 'doc' | 'video' | 'link';
+  fileSize?: string;
+  url: string;
+  uploadedAt: string;
+}
+
+export interface ClassroomPermissions {
+  allowStudentMic: boolean;
+  allowStudentCamera: boolean;
+  allowChat: boolean;
+  allowScreenShare: boolean;
+  enableWhiteboard: boolean;
+  recordSession: boolean;
+  requireWaitingRoom: boolean;
+  autoAttendance: boolean;
+  enableQnA: boolean;
+  enableBreakoutRooms: boolean;
+}
+
+export interface OnlineClass {
+  id: string;
+  title: string;
+  subject: string;
+  class: string;
+  section: string;
+  academicYear: string;
+  instructorName: string;
+  instructorAvatar?: string;
+  instructorTitle?: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  timeZone: string;
+  status: OnlineClassStatus;
+  platform: OnlineClassPlatform;
+  meetingLink: string;
+  meetingId?: string;
+  passcode?: string;
+  enrolledStudentsCount: number;
+  liveAttendanceCount: number;
+  maxCapacity: number;
+  description: string;
+  topics: string[];
+  materials: OnlineClassMaterial[];
+  permissions: ClassroomPermissions;
+  recurrence: OnlineClassRecurrence;
+  recurrenceDays?: string[];
+  recordingUrl?: string;
+  associatedExamId?: string;
+  associatedExamTitle?: string;
+  createdAt: string;
+}
+
+export interface CreateOnlineClassFormData {
+  title: string;
+  subject: string;
+  class: string;
+  section: string;
+  academicYear: string;
+  instructorName: string;
+  instructorTitle: string;
+  description: string;
+  topics: string[];
+  date: string;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  timeZone: string;
+  recurrence: OnlineClassRecurrence;
+  recurrenceDays: string[];
+  platform: OnlineClassPlatform;
+  autoGenerateLink: boolean;
+  customMeetingLink: string;
+  meetingId: string;
+  passcode: string;
+  maxCapacity: number;
+  permissions: ClassroomPermissions;
+  materials: OnlineClassMaterial[];
+  notifyStudents: boolean;
+  notifyParents: boolean;
+  sendCalendarInvite: boolean;
+  reminderMinutes: number;
+  associatedExamId?: string;
+}
+
+// -------------------------------------------------------------
+// Live In-Class Assessment & Real-time Quiz Types
+// -------------------------------------------------------------
+
+export type LiveAssessmentQuestionType = 'mcq' | 'match_following' | 'fill_in_blanks' | 'short_answer';
+
+export interface MatchingPairItem {
+  id: string;
+  leftText: string;
+  rightText: string;
+}
+
+export interface BlankSlotItem {
+  id: string;
+  label: string;
+  sentencePrefix: string;
+  sentenceSuffix?: string;
+  correctAnswer: string;
+}
+
+export interface LiveAssessmentQuestion {
+  id: string;
+  type: LiveAssessmentQuestionType;
+  prompt: string;
+  marks: number;
+  explanation?: string;
+  // MCQ fields
+  options?: string[];
+  correctOptionIndex?: number;
+  // Match the Following fields
+  matchingPairs?: MatchingPairItem[];
+  // Fill in the Blanks (Drag to Blank) fields
+  blankSlots?: BlankSlotItem[];
+  blankOptions?: string[];
+  // Short Answer fields
+  sampleAnswer?: string;
+  keywords?: string[];
+}
+
+export interface LiveStudentAnswer {
+  questionId: string;
+  selectedOptionIndex?: number;
+  matchedPairs?: Record<string, string>; // leftText/id -> rightText/id
+  blankAnswers?: Record<string, string>; // slotId -> droppedOption
+  textAnswer?: string;
+  isAutoCorrect?: boolean;
+  scoreAwarded?: number;
+}
+
+export interface LiveAssessmentSubmission {
+  id: string;
+  assessmentId: string;
+  studentId: string;
+  studentName: string;
+  rollNo: string;
+  avatar: string;
+  submittedAt: string;
+  answers: Record<string, LiveStudentAnswer>;
+  totalScore: number;
+  maxMarks: number;
+  percentage: number;
+  status: 'submitted' | 'reviewed';
+  teacherFeedback?: string;
+}
+
+export interface LiveInClassAssessment {
+  id: string;
+  classId: string;
+  title: string;
+  subject: string;
+  topic: string;
+  durationSeconds: number; // e.g. 180 (3 minutes)
+  totalMarks: number;
+  status: 'active' | 'closed' | 'published';
+  launchedAt: string;
+  questions: LiveAssessmentQuestion[];
+  submissions: LiveAssessmentSubmission[];
+}
+
+
