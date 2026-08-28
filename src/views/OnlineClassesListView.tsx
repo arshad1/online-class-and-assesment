@@ -66,7 +66,7 @@ export const OnlineClassesListView: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="px-4 sm:px-6 py-6 space-y-6 w-full">
       {/* Header & New Class Button */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>

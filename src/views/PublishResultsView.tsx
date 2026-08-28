@@ -525,7 +525,7 @@ export const PublishResultsView: React.FC = () => {
   const displayPhase = isFullyPublished && phase === 'draft' ? 'published' : phase;
 
   return (
-    <div className="p-6 space-y-5 max-w-7xl mx-auto font-sans">
+    <div className="px-4 sm:px-6 py-6 space-y-6 w-full font-sans">
 
       {/* ── TOP HEADER ROW ─────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">

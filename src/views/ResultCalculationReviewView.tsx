@@ -62,7 +62,7 @@ export const ResultCalculationReviewView: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto font-sans">
+    <div className="px-4 sm:px-6 py-6 space-y-6 w-full font-sans">
       {/* Top Header & Publication Action Banner */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">

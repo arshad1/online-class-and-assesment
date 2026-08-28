@@ -83,7 +83,7 @@ export const ExamMonitoringView: React.FC = () => {
   });
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="px-4 sm:px-6 py-6 space-y-6 w-full">
       {/* Top Header Card: Exam Live Bar */}
       <div className="p-5 bg-slate-900 text-white rounded-2xl shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border border-slate-800">
         <div className="space-y-1">

@@ -48,7 +48,7 @@ export const StudentResultsView: React.FC = () => {
   const pendingSubs = filteredSubmissions.filter((s) => !isExamPublished(s.examId));
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto font-sans">
+    <div className="px-4 sm:px-6 py-6 space-y-6 w-full font-sans">
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>

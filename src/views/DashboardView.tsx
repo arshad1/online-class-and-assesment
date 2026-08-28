@@ -37,7 +37,7 @@ export const DashboardView: React.FC = () => {
   const resultsReadyToPublish = studentSubmissions.filter((s) => s.publishStatus === 'ready').length;
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="px-4 sm:px-6 py-6 space-y-6 w-full">
       {/* Top Banner / Welcome Card */}
       <div className="p-6 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-2xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-blue-800/40">
         <div className="space-y-1">
