@@ -35,6 +35,8 @@ import {
   Lock,
   UserCheck,
   Check,
+  Plus,
+  Eye,
 } from 'lucide-react';
 import { LiveAssessmentStudentModal } from '../components/modals/LiveAssessmentStudentModal';
 import { LiveAssessmentTeacherReviewModal } from '../components/modals/LiveAssessmentTeacherReviewModal';
@@ -48,6 +50,9 @@ export const LiveClassroomView: React.FC = () => {
     endLiveClass,
     addToast,
     activeLiveAssessment,
+    liveAssessments,
+    launchSavedAssessmentInClass,
+    launchLiveAssessment,
     setShowStudentAssessmentModal,
     setShowTeacherAssessmentReviewModal,
     setShowAssessmentCreatorModal,
@@ -504,6 +509,18 @@ export const LiveClassroomView: React.FC = () => {
                 <FileText className="w-3.5 h-3.5" />
                 Files
               </button>
+
+              <button
+                onClick={() => setActiveSidePanel('assessment')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                  activeSidePanel === 'assessment'
+                    ? 'bg-amber-600 text-white'
+                    : 'text-amber-300 hover:text-amber-200 hover:bg-slate-800'
+                }`}
+              >
+                <Zap className="w-3.5 h-3.5 fill-amber-400" />
+                Quizzes
+              </button>
             </div>
 
             <button
@@ -511,8 +528,8 @@ export const LiveClassroomView: React.FC = () => {
               className="p-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg text-xs font-bold flex items-center gap-1"
               title="Launch In-Class Quiz"
             >
-              <Zap className="w-3.5 h-3.5 fill-amber-400" />
-              <span>+ Quiz</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>Share Quiz</span>
             </button>
           </div>
 
@@ -670,6 +687,129 @@ export const LiveClassroomView: React.FC = () => {
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Assessment Side Panel Tab */}
+            {activeSidePanel === 'assessment' && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-extrabold uppercase text-amber-400 tracking-wider flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 fill-amber-400" />
+                    In-Class Quizzes
+                  </span>
+                  <button
+                    onClick={() => setShowAssessmentCreatorModal(true)}
+                    className="text-[11px] text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Select/Customize</span>
+                  </button>
+                </div>
+
+                {/* Active Live Assessment Monitor if active */}
+                {activeLiveAssessment && (
+                  <div className="p-3.5 rounded-2xl bg-linear-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-amber-500/40 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-red-600 text-white animate-pulse">
+                        ● Live Broadcast
+                      </span>
+                      <span className="text-[10px] text-amber-300 font-bold">
+                        {activeLiveAssessment.totalMarks} Marks • {activeLiveAssessment.questions.length} Qs
+                      </span>
+                    </div>
+
+                    <h4 className="text-xs font-black text-white">{activeLiveAssessment.title}</h4>
+
+                    <div className="pt-1 space-y-1.5">
+                      {classroomRole === 'teacher' ? (
+                        <>
+                          <button
+                            onClick={() => setShowTeacherAssessmentReviewModal(true)}
+                            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-all"
+                          >
+                            <Award className="w-3.5 h-3.5 text-amber-300" />
+                            <span>View Live Submissions ({activeLiveAssessment.submissions.length})</span>
+                          </button>
+                          <button
+                            onClick={() => setShowStudentAssessmentModal(true)}
+                            className="w-full py-1 text-[10px] text-slate-400 hover:text-slate-200 text-center font-medium"
+                          >
+                            Preview Student Test Solving →
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => setShowStudentAssessmentModal(true)}
+                          className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition-all animate-pulse"
+                        >
+                          <Zap className="w-3.5 h-3.5 text-amber-300" />
+                          <span>Answer Spot Quiz Now</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Saved Assessments Library in Live Class */}
+                <div className="space-y-2 pt-1">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Saved In-Class Assessments Library ({liveAssessments.length})
+                  </span>
+
+                  <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                    {liveAssessments.map((ass) => {
+                      const isCurrentActive = activeLiveAssessment?.id === ass.id;
+                      return (
+                        <div
+                          key={ass.id}
+                          className={`p-3 rounded-xl border space-y-2 text-xs transition-all ${
+                            isCurrentActive
+                              ? 'bg-slate-800/90 border-blue-500/60'
+                              : 'bg-slate-800/40 border-slate-700/60'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-blue-400">{ass.subject}</span>
+                            <span className="text-[10px] text-slate-400 font-semibold">
+                              {ass.durationSeconds > 0 ? `${Math.floor(ass.durationSeconds / 60)}m` : 'Untimed'} • {ass.totalMarks}M
+                            </span>
+                          </div>
+
+                          <p className="text-white font-bold text-[11px] line-clamp-1">{ass.title}</p>
+
+                          <div className="flex items-center gap-2 pt-1">
+                            <button
+                              onClick={() => {
+                                launchSavedAssessmentInClass(ass.id, currentClass.id);
+                                addToast(
+                                  'Assessment Broadcasted',
+                                  `"${ass.title}" is now shared in live classroom!`,
+                                  'success'
+                                );
+                              }}
+                              className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-all"
+                            >
+                              <Send className="w-3 h-3" />
+                              <span>{isCurrentActive ? 'Re-broadcast' : 'Share to Class'}</span>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                launchSavedAssessmentInClass(ass.id, currentClass.id);
+                                setShowStudentAssessmentModal(true);
+                              }}
+                              className="px-2 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-[10px] font-medium"
+                              title="Test Student Answering"
+                            >
+                              <Eye className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             )}
           </div>

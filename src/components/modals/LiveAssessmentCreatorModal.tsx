@@ -23,6 +23,7 @@ export const LiveAssessmentCreatorModal: React.FC = () => {
     launchLiveAssessment,
     liveAssessments,
     activeLiveClass,
+    setActiveTab,
     addToast,
   } = useExam();
 
@@ -80,6 +81,45 @@ export const LiveAssessmentCreatorModal: React.FC = () => {
 
         {/* Modal Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
+          {/* Assessment Template Selection */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold text-slate-800">
+                Select Saved Assessment from Library
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAssessmentCreatorModal(false);
+                  setActiveTab('create-class-assessment');
+                }}
+                className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create New In Builder</span>
+              </button>
+            </div>
+
+            <select
+              value={selectedTemplateId}
+              onChange={(e) => {
+                setSelectedTemplateId(e.target.value);
+                const found = liveAssessments.find((a) => a.id === e.target.value);
+                if (found) {
+                  setCustomTitle(found.title);
+                  setDurationSec(found.durationSeconds || 180);
+                }
+              }}
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              {liveAssessments.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.title} ({a.subject} • {a.questions.length} Qs • {a.totalMarks} Marks)
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Assessment Title */}
           <div>
             <label className="block text-xs font-bold text-slate-800 mb-1.5">
@@ -126,31 +166,39 @@ export const LiveAssessmentCreatorModal: React.FC = () => {
           <div className="space-y-3 pt-2 border-t border-slate-100">
             <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              Included Question Breakdown ({selectedTemplate?.questions.length || 3} Questions • 10 Marks)
+              Included Question Breakdown ({selectedTemplate?.questions.length || 0} Questions • {selectedTemplate?.totalMarks || 0} Marks)
             </span>
 
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
               {selectedTemplate?.questions.map((q, idx) => (
                 <div
                   key={q.id}
                   className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-start justify-between gap-3 text-xs"
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-blue-100 text-blue-800">
+                      <span className="text-slate-400 font-bold">Q{idx + 1}</span>
+                      <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md ${
+                        q.type === 'mcq'
+                          ? 'bg-blue-100 text-blue-800'
+                          : q.type === 'mmcq'
+                          ? 'bg-purple-100 text-purple-800'
+                          : q.type === 'match_following'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-emerald-100 text-emerald-800'
+                      }`}>
                         {q.type === 'mcq'
                           ? 'MCQ Single Choice'
+                          : q.type === 'mmcq'
+                          ? 'MMCQ Multiple Choice'
                           : q.type === 'match_following'
-                          ? 'Match the Following • Drag & Drop'
-                          : q.type === 'fill_in_blanks'
-                          ? 'Fill in Blanks • Drag to Blank'
-                          : 'Conceptual Response'}
+                          ? 'Match the Following'
+                          : 'Fill in Blanks'}
                       </span>
-                      <span className="text-slate-400 font-bold">Q{idx + 1}</span>
                     </div>
-                    <p className="text-slate-800 font-medium line-clamp-1">{q.prompt}</p>
+                    <p className="text-slate-800 font-medium truncate">{q.prompt}</p>
                   </div>
-                  <span className="text-xs font-black text-slate-900 bg-white px-2 py-1 rounded-lg border border-slate-200">
+                  <span className="text-xs font-black text-slate-900 bg-white px-2 py-1 rounded-lg border border-slate-200 shrink-0">
                     {q.marks} Marks
                   </span>
                 </div>

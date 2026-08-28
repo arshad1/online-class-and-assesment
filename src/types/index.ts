@@ -305,6 +305,8 @@ export interface ResultApprovalState {
 export type ActiveNavTab =
   | 'dashboard'
   | 'online-classes'
+  | 'online-class-assessments'
+  | 'create-class-assessment'
   | 'create-online-class'
   | 'live-classroom'
   | 'exam-scheduling'
@@ -1011,7 +1013,7 @@ export interface CreateOnlineClassFormData {
 // Live In-Class Assessment & Real-time Quiz Types
 // -------------------------------------------------------------
 
-export type LiveAssessmentQuestionType = 'mcq' | 'match_following' | 'fill_in_blanks' | 'short_answer';
+export type LiveAssessmentQuestionType = 'mcq' | 'mmcq' | 'fill_in_blanks' | 'match_following' | 'short_answer';
 
 export interface MatchingPairItem {
   id: string;
@@ -1033,9 +1035,12 @@ export interface LiveAssessmentQuestion {
   prompt: string;
   marks: number;
   explanation?: string;
-  // MCQ fields
+  // MCQ fields (Single Choice)
   options?: string[];
   correctOptionIndex?: number;
+  // MMCQ fields (Multiple Choice - Multiple Correct)
+  correctOptionIndices?: number[];
+  minSelections?: number;
   // Match the Following fields
   matchingPairs?: MatchingPairItem[];
   // Fill in the Blanks (Drag to Blank) fields
@@ -1049,6 +1054,7 @@ export interface LiveAssessmentQuestion {
 export interface LiveStudentAnswer {
   questionId: string;
   selectedOptionIndex?: number;
+  selectedOptionIndices?: number[]; // For MMCQ
   matchedPairs?: Record<string, string>; // leftText/id -> rightText/id
   blankAnswers?: Record<string, string>; // slotId -> droppedOption
   textAnswer?: string;
@@ -1074,14 +1080,19 @@ export interface LiveAssessmentSubmission {
 
 export interface LiveInClassAssessment {
   id: string;
-  classId: string;
+  classId?: string;
   title: string;
   subject: string;
   topic: string;
-  durationSeconds: number; // e.g. 180 (3 minutes)
+  targetClass?: string;
+  durationSeconds: number; // e.g. 180 (3 minutes), 0 for untimed
   totalMarks: number;
-  status: 'active' | 'closed' | 'published';
-  launchedAt: string;
+  passMarks?: number;
+  status: 'active' | 'closed' | 'published' | 'draft';
+  isDraft?: boolean;
+  launchedAt?: string;
+  createdAt?: string;
+  instructions?: string;
   questions: LiveAssessmentQuestion[];
   submissions: LiveAssessmentSubmission[];
 }

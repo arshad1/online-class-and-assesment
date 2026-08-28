@@ -81,7 +81,23 @@ export const OnlineClassesListView: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            onClick={() => setActiveTab('online-class-assessments')}
+            className="px-3.5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl shadow-xs flex items-center gap-2 transition-all"
+          >
+            <FileText className="w-4 h-4 text-purple-600" />
+            <span>Class Assessments</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('create-class-assessment')}
+            className="px-3.5 py-2.5 bg-purple-50 border border-purple-300 hover:bg-purple-100 text-purple-800 text-xs font-bold rounded-xl shadow-xs flex items-center gap-2 transition-all"
+          >
+            <Sparkles className="w-4 h-4 text-purple-600" />
+            <span>+ Create Assessment</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('create-online-class')}
             className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-500/20 flex items-center gap-2 transition-all transform hover:-translate-y-0.5"

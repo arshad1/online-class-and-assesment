@@ -56,6 +56,16 @@ export const Header: React.FC<HeaderProps> = ({ searchTerm, setSearchTerm }) => 
           title: 'Online Classes & Virtual Lectures',
           subtitle: 'Manage live classrooms, timetable schedules, attendance and course materials',
         };
+      case 'online-class-assessments':
+        return {
+          title: 'Online Class Assessments & Spot Quizzes',
+          subtitle: 'Create, save, manage, and share in-class interactive quizzes across MCQ, MMCQ, blanks, and matching',
+        };
+      case 'create-class-assessment':
+        return {
+          title: 'Create In-Class Assessment',
+          subtitle: 'Build interactive assessments with MCQ, MMCQ, Fill in the Blanks, and Match the Following question types',
+        };
       case 'create-online-class':
         return {
           title: 'Create & Schedule Online Class',

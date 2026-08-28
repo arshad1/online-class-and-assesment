@@ -80,6 +80,13 @@ export const LiveAssessmentStudentModal: React.FC = () => {
     activeLiveAssessment.durationSeconds || 180
   );
   const [selectedMcqOption, setSelectedMcqOption] = useState<number | undefined>(undefined);
+  const [selectedMmcqOptions, setSelectedMmcqOptions] = useState<number[]>([]);
+
+  const toggleMmcqOption = (idx: number) => {
+    setSelectedMmcqOptions((prev) =>
+      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
+    );
+  };
 
   // Match the Following State (Q2)
   const [selectedLeftId, setSelectedLeftId] = useState<string | null>(null);
@@ -286,6 +293,30 @@ export const LiveAssessmentStudentModal: React.FC = () => {
           isAutoCorrect: isCorrect,
           scoreAwarded: awarded,
         };
+      } else if (q.type === 'mmcq') {
+        const correctIndices = q.correctOptionIndices || [];
+        const isFullyCorrect =
+          correctIndices.length > 0 &&
+          correctIndices.every((idx) => selectedMmcqOptions.includes(idx)) &&
+          selectedMmcqOptions.every((idx) => correctIndices.includes(idx));
+
+        let score = 0;
+        if (isFullyCorrect) {
+          score = q.marks;
+        } else {
+          const correctSelected = selectedMmcqOptions.filter((idx) => correctIndices.includes(idx)).length;
+          const incorrectSelected = selectedMmcqOptions.filter((idx) => !correctIndices.includes(idx)).length;
+          if (incorrectSelected === 0 && correctSelected > 0) {
+            score = parseFloat(((correctSelected / correctIndices.length) * q.marks).toFixed(1));
+          }
+        }
+        calculatedScore += score;
+        answersRecord[q.id] = {
+          questionId: q.id,
+          selectedOptionIndices: selectedMmcqOptions,
+          isAutoCorrect: isFullyCorrect,
+          scoreAwarded: score,
+        };
       } else if (q.type === 'match_following') {
         let correctMatchesCount = 0;
         const totalPairs = q.matchingPairs?.length || 1;
@@ -362,6 +393,7 @@ export const LiveAssessmentStudentModal: React.FC = () => {
   const timeFormatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
   const mcqQuestion = activeLiveAssessment.questions.find((q) => q.type === 'mcq');
+  const mmcqQuestion = activeLiveAssessment.questions.find((q) => q.type === 'mmcq');
   const matchQuestion = activeLiveAssessment.questions.find((q) => q.type === 'match_following');
   const fillBlanksQuestion = activeLiveAssessment.questions.find((q) => q.type === 'fill_in_blanks');
   const shortQuestion = activeLiveAssessment.questions.find((q) => q.type === 'short_answer');
@@ -639,6 +671,49 @@ export const LiveAssessmentStudentModal: React.FC = () => {
                 </div>
               )}
 
+              {/* Multiple Choice Question (Multiple Correct - MMCQ) */}
+              {mmcqQuestion && (
+                <div className="space-y-3 p-5 bg-slate-50/70 rounded-2xl border border-purple-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold uppercase text-purple-600 tracking-wider">
+                      MMCQ • Multiple Choices ({mmcqQuestion.marks} Marks)
+                    </span>
+                    <span className="text-[10px] font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full border border-purple-300">
+                      ☑️ Select all that apply
+                    </span>
+                  </div>
+
+                  <h3 className="text-sm font-bold text-slate-900 leading-snug">{mmcqQuestion.prompt}</h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                    {mmcqQuestion.options?.map((opt, idx) => {
+                      const isSelected = selectedMmcqOptions.includes(idx);
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => toggleMmcqOption(idx)}
+                          className={`p-3.5 rounded-xl border text-left font-semibold text-xs transition-all flex items-center justify-between ${
+                            isSelected
+                              ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
+                              : 'bg-white text-slate-800 border-slate-200 hover:border-purple-300 hover:bg-purple-50/40'
+                          }`}
+                        >
+                          <span>{opt}</span>
+                          <div
+                            className={`w-4 h-4 rounded-md border flex items-center justify-center ${
+                              isSelected ? 'border-white bg-white text-purple-600' : 'border-slate-300'
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3 stroke-3" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Question 2: Interactive Drag & Drop Match the Following with Blank Drop Targets */}
               {matchQuestion && (
                 <div className="space-y-4 p-5 bg-slate-50/80 rounded-2xl border border-slate-200 shadow-xs">
@@ -755,12 +830,14 @@ export const LiveAssessmentStudentModal: React.FC = () => {
                             {isFilled && matchedRight ? (
                               <div className="flex items-center justify-between w-full gap-2">
                                 <div className="flex items-center gap-2 min-w-0">
-                                  <GripVertical
+                                  <span
                                     draggable
                                     onDragStart={(e) => handleDragStart(e, 'right', matchedRight)}
                                     onDragEnd={handleDragEnd}
-                                    className="w-3.5 h-3.5 text-slate-400 hover:text-emerald-600 shrink-0 cursor-grab active:cursor-grabbing"
-                                  />
+                                    className="cursor-grab active:cursor-grabbing inline-flex"
+                                  >
+                                    <GripVertical className="w-3.5 h-3.5 text-slate-400 hover:text-emerald-600 shrink-0" />
+                                  </span>
                                   <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
                                     Slot {letterLabel}
                                   </span>
@@ -999,12 +1076,14 @@ export const LiveAssessmentStudentModal: React.FC = () => {
                           >
                             {isFilled ? (
                               <>
-                                <GripVertical
+                                <span
                                   draggable
                                   onDragStart={(e) => handleDragStart(e, 'blank_slot', placedTerm, undefined, slot.id)}
                                   onDragEnd={handleDragEnd}
-                                  className="w-3.5 h-3.5 text-indigo-400 hover:text-indigo-700 shrink-0 cursor-grab active:cursor-grabbing"
-                                />
+                                  className="cursor-grab active:cursor-grabbing inline-flex"
+                                >
+                                  <GripVertical className="w-3.5 h-3.5 text-indigo-400 hover:text-indigo-700 shrink-0" />
+                                </span>
                                 <span className="font-mono font-bold text-xs text-indigo-950">
                                   {placedTerm}
                                 </span>

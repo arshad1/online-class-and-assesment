@@ -7,6 +7,8 @@ import { ToastContainer } from './components/common/ToastContainer';
 // Teacher Views
 import { DashboardView } from './views/DashboardView';
 import { OnlineClassesListView } from './views/OnlineClassesListView';
+import { OnlineClassAssessmentsView } from './views/OnlineClassAssessmentsView';
+import { CreateClassAssessmentView } from './views/CreateClassAssessmentView';
 import { CreateOnlineClassView } from './views/CreateOnlineClassView';
 import { LiveClassroomView } from './views/LiveClassroomView';
 import { ExamSchedulingView } from './views/ExamSchedulingView';
@@ -84,6 +86,8 @@ const MainContent: React.FC = () => {
           {/* Teacher Views */}
           {activeTab === 'dashboard' && <DashboardView />}
           {activeTab === 'online-classes' && <OnlineClassesListView />}
+          {activeTab === 'online-class-assessments' && <OnlineClassAssessmentsView />}
+          {activeTab === 'create-class-assessment' && <CreateClassAssessmentView />}
           {activeTab === 'create-online-class' && <CreateOnlineClassView />}
           {activeTab === 'exam-scheduling' && <ExamSchedulingView />}
           {activeTab === 'create-exam-basic' && <ExamBasicDetailsView />}

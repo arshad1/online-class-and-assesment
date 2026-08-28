@@ -262,7 +262,13 @@ interface ExamContextType {
   liveAssessments: LiveInClassAssessment[];
   activeLiveAssessment: LiveInClassAssessment | null;
   setActiveLiveAssessment: (ass: LiveInClassAssessment | null) => void;
+  editingLiveAssessment: LiveInClassAssessment | null;
+  setEditingLiveAssessment: (ass: LiveInClassAssessment | null) => void;
+  saveLiveAssessment: (assessment: LiveInClassAssessment) => void;
+  deleteLiveAssessment: (id: string) => void;
+  duplicateLiveAssessment: (id: string) => void;
   launchLiveAssessment: (assessment: LiveInClassAssessment) => void;
+  launchSavedAssessmentInClass: (assessmentId: string, classId?: string) => void;
   submitLiveStudentAssessment: (submission: LiveAssessmentSubmission) => void;
   gradeLiveStudentSubmission: (assessmentId: string, submissionId: string, updates: Partial<LiveAssessmentSubmission>) => void;
   closeLiveAssessment: (assessmentId: string) => void;
@@ -440,9 +446,52 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [activeLiveAssessment, setActiveLiveAssessment] = useState<LiveInClassAssessment | null>(
     initialLiveAssessments[0] || null
   );
+  const [editingLiveAssessment, setEditingLiveAssessment] = useState<LiveInClassAssessment | null>(null);
   const [showStudentAssessmentModal, setShowStudentAssessmentModal] = useState<boolean>(false);
   const [showTeacherAssessmentReviewModal, setShowTeacherAssessmentReviewModal] = useState<boolean>(false);
   const [showAssessmentCreatorModal, setShowAssessmentCreatorModal] = useState<boolean>(false);
+
+  const saveLiveAssessment = (assessment: LiveInClassAssessment) => {
+    setLiveAssessments((prev) => {
+      const idx = prev.findIndex((a) => a.id === assessment.id);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = { ...assessment };
+        return copy;
+      }
+      return [{ ...assessment }, ...prev];
+    });
+    addToast(
+      'Assessment Saved',
+      `"${assessment.title}" has been saved to your Online Class Assessment library.`,
+      'success'
+    );
+  };
+
+  const deleteLiveAssessment = (id: string) => {
+    setLiveAssessments((prev) => prev.filter((a) => a.id !== id));
+    if (activeLiveAssessment?.id === id) {
+      setActiveLiveAssessment(null);
+    }
+    addToast('Assessment Removed', 'The assessment was deleted from the library.', 'info');
+  };
+
+  const duplicateLiveAssessment = (id: string) => {
+    const original = liveAssessments.find((a) => a.id === id);
+    if (!original) return;
+    const duplicated: LiveInClassAssessment = {
+      ...original,
+      id: 'live-ass-' + Date.now().toString(36),
+      title: `${original.title} (Copy)`,
+      status: 'draft',
+      isDraft: true,
+      submissions: [],
+      createdAt: new Date().toISOString().split('T')[0],
+      launchedAt: undefined,
+    };
+    setLiveAssessments((prev) => [duplicated, ...prev]);
+    addToast('Assessment Duplicated', `Created a copy of "${original.title}".`, 'success');
+  };
 
   const launchLiveAssessment = (assessment: LiveInClassAssessment) => {
     setLiveAssessments((prev) => {
@@ -452,6 +501,7 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         copy[idx] = {
           ...assessment,
           status: 'active',
+          isDraft: false,
           launchedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         return copy;
@@ -460,6 +510,7 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         {
           ...assessment,
           status: 'active',
+          isDraft: false,
           launchedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
         ...prev,
@@ -467,6 +518,19 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
     setActiveLiveAssessment(assessment);
     addToast('Assessment Dispatched', `"${assessment.title}" broadcasted to live classroom chat!`, 'success');
+  };
+
+  const launchSavedAssessmentInClass = (assessmentId: string, classId?: string) => {
+    const target = liveAssessments.find((a) => a.id === assessmentId);
+    if (!target) return;
+    const toLaunch: LiveInClassAssessment = {
+      ...target,
+      classId: classId || activeLiveClass?.id || target.classId || 'cls-101',
+      status: 'active',
+      isDraft: false,
+      launchedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    launchLiveAssessment(toLaunch);
   };
 
   const submitLiveStudentAssessment = (submission: LiveAssessmentSubmission) => {
@@ -1535,7 +1599,13 @@ export const ExamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         liveAssessments,
         activeLiveAssessment,
         setActiveLiveAssessment,
+        editingLiveAssessment,
+        setEditingLiveAssessment,
+        saveLiveAssessment,
+        deleteLiveAssessment,
+        duplicateLiveAssessment,
         launchLiveAssessment,
+        launchSavedAssessmentInClass,
         submitLiveStudentAssessment,
         gradeLiveStudentSubmission,
         closeLiveAssessment,
