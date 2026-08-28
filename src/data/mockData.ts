@@ -2423,6 +2423,24 @@ export const mockLiveAssessments: LiveInClassAssessment[] = [
         ],
         blankOptions: ["g'(x)", "-2 · sin(2x)", "maximum", "minimum", "2 · cos(2x)", "f'(x)"],
       },
+      {
+        id: 'q-live-seq-1',
+        type: 'step_ordering',
+        prompt: '5. Arrange the step-by-step mathematical proof for solving the quadratic equation 2x² + 5x - 3 = 0 in correct logical sequence (Beware of distractor steps):',
+        marks: 4,
+        orderedSteps: [
+          'Step 1: Write equation in standard form: 2x² + 5x - 3 = 0',
+          'Step 2: Split middle term using product-sum rule: 2x² + 6x - x - 3 = 0',
+          'Step 3: Group terms to factor out GCF: 2x(x + 3) - 1(x + 3) = 0',
+          'Step 4: Factor the common binomial: (2x - 1)(x + 3) = 0',
+          'Step 5: Apply zero product property: x = 1/2 or x = -3',
+        ],
+        distractorSteps: [
+          'Distractor: Incorrect middle split: 2x² + 3x + 2x - 3 = 0',
+          'Distractor: Incorrect binomial signs: (2x + 1)(x - 3) = 0',
+        ],
+        explanation: 'The factors of (2)(-3) = -6 that add up to +5 are +6 and -1. Grouping yields (2x - 1)(x + 3) = 0, giving roots x = 1/2, -3.',
+      },
     ],
     submissions: [
       {

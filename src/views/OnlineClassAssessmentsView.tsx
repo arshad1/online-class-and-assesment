@@ -127,6 +127,12 @@ export const OnlineClassAssessmentsView: React.FC = () => {
             Match the Following
           </span>
         );
+      case 'step_ordering':
+        return (
+          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+            Sequence Ordering
+          </span>
+        );
       default:
         return (
           <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
@@ -322,6 +328,7 @@ export const OnlineClassAssessmentsView: React.FC = () => {
             const mmcqCount = ass.questions.filter((q) => q.type === 'mmcq').length;
             const blanksCount = ass.questions.filter((q) => q.type === 'fill_in_blanks').length;
             const matchCount = ass.questions.filter((q) => q.type === 'match_following').length;
+            const stepCount = ass.questions.filter((q) => q.type === 'step_ordering').length;
 
             return (
               <div
@@ -411,6 +418,11 @@ export const OnlineClassAssessmentsView: React.FC = () => {
                       {matchCount > 0 && (
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                           {matchCount} Matching
+                        </span>
+                      )}
+                      {stepCount > 0 && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          {stepCount} Sequence Ordering
                         </span>
                       )}
                     </div>
@@ -577,6 +589,28 @@ export const OnlineClassAssessmentsView: React.FC = () => {
                               </div>
                             </div>
                           )}
+
+                          {/* Step Ordering preview */}
+                          {q.type === 'step_ordering' && q.orderedSteps && (
+                            <div className="space-y-1.5 pt-1">
+                              <span className="text-[10px] font-bold text-indigo-800 uppercase">
+                                Ordered Solution Sequence:
+                              </span>
+                              <div className="space-y-1">
+                                {q.orderedSteps.map((st, stIdx) => (
+                                  <div
+                                    key={stIdx}
+                                    className="p-1.5 bg-indigo-50/60 rounded-lg border border-indigo-100 flex items-center gap-2 text-xs"
+                                  >
+                                    <span className="w-4 h-4 rounded bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px] shrink-0">
+                                      {stIdx + 1}
+                                    </span>
+                                    <span className="text-slate-800 font-medium">{st}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -728,6 +762,43 @@ export const OnlineClassAssessmentsView: React.FC = () => {
                             </select>
                           </div>
                         ))}
+                      </div>
+                    )}
+
+                    {/* Step Ordering */}
+                    {q.type === 'step_ordering' && q.orderedSteps && (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-white rounded-xl border border-indigo-200 space-y-2">
+                          <span className="text-[11px] font-bold text-indigo-900 block">
+                            📝 Arrange Solution Steps in Logical Order:
+                          </span>
+                          <div className="space-y-1.5">
+                            {q.orderedSteps.map((step, sIdx) => (
+                              <div
+                                key={sIdx}
+                                className="p-2 bg-indigo-50/60 rounded-lg border border-indigo-100 flex items-center gap-2 text-xs text-slate-800"
+                              >
+                                <span className="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px] shrink-0">
+                                  {sIdx + 1}
+                                </span>
+                                <span className="font-medium">{step}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {q.distractorSteps && q.distractorSteps.length > 0 && (
+                          <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-xs">
+                            <span className="font-bold text-amber-900 block mb-1">
+                              ⚠️ Distractor Steps (Mixed into pool to challenge students):
+                            </span>
+                            <ul className="list-disc list-inside text-amber-800 text-[11px] space-y-0.5">
+                              {q.distractorSteps.map((d, dIdx) => (
+                                <li key={dIdx}>{d}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

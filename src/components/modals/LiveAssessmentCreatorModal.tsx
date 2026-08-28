@@ -185,6 +185,8 @@ export const LiveAssessmentCreatorModal: React.FC = () => {
                           ? 'bg-purple-100 text-purple-800'
                           : q.type === 'match_following'
                           ? 'bg-amber-100 text-amber-800'
+                          : q.type === 'step_ordering'
+                          ? 'bg-indigo-100 text-indigo-800'
                           : 'bg-emerald-100 text-emerald-800'
                       }`}>
                         {q.type === 'mcq'
@@ -193,6 +195,8 @@ export const LiveAssessmentCreatorModal: React.FC = () => {
                           ? 'MMCQ Multiple Choice'
                           : q.type === 'match_following'
                           ? 'Match the Following'
+                          : q.type === 'step_ordering'
+                          ? 'Sequence Ordering'
                           : 'Fill in Blanks'}
                       </span>
                     </div>

@@ -22,6 +22,10 @@ import {
   Unlink2,
   MousePointerClick,
   RefreshCw,
+  ListOrdered,
+  ChevronUp,
+  ChevronDown,
+  Plus,
 } from 'lucide-react';
 import { LiveAssessmentSubmission, LiveStudentAnswer } from '../../types';
 
@@ -110,6 +114,37 @@ export const LiveAssessmentStudentModal: React.FC = () => {
 
   // Short Answer State (Q4)
   const [shortAnswerText, setShortAnswerText] = useState<string>('');
+
+  // Step Ordering & Sequential Proof State (Q5)
+  const [placedSolutionSteps, setPlacedSolutionSteps] = useState<string[]>([]);
+
+  const handleAddSolutionStep = (stepText: string) => {
+    if (!placedSolutionSteps.includes(stepText)) {
+      setPlacedSolutionSteps((prev) => [...prev, stepText]);
+    }
+  };
+
+  const handleRemoveSolutionStep = (stepIdx: number) => {
+    setPlacedSolutionSteps((prev) => prev.filter((_, idx) => idx !== stepIdx));
+  };
+
+  const handleMoveSolutionStep = (stepIdx: number, direction: 'up' | 'down') => {
+    if (
+      (direction === 'up' && stepIdx === 0) ||
+      (direction === 'down' && stepIdx === placedSolutionSteps.length - 1)
+    ) {
+      return;
+    }
+    const targetIdx = direction === 'up' ? stepIdx - 1 : stepIdx + 1;
+    const copy = [...placedSolutionSteps];
+    const item = copy.splice(stepIdx, 1)[0];
+    copy.splice(targetIdx, 0, item);
+    setPlacedSolutionSteps(copy);
+  };
+
+  const handleResetSolutionSteps = () => {
+    setPlacedSolutionSteps([]);
+  };
 
   // Submission result state
   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
@@ -349,6 +384,36 @@ export const LiveAssessmentStudentModal: React.FC = () => {
           isAutoCorrect: correctBlanksCount === totalSlots,
           scoreAwarded: blankScore,
         };
+      } else if (q.type === 'step_ordering') {
+        const correctSteps = q.orderedSteps || [];
+        const studentPlaced = placedSolutionSteps;
+        const isLengthEqual = studentPlaced.length === correctSteps.length;
+        const isExactMatch =
+          isLengthEqual && studentPlaced.every((s, sIdx) => s === correctSteps[sIdx]);
+
+        let stepScore = 0;
+        if (isExactMatch) {
+          stepScore = q.marks;
+        } else {
+          let correctPrefixCount = 0;
+          for (let i = 0; i < studentPlaced.length; i++) {
+            if (i < correctSteps.length && studentPlaced[i] === correctSteps[i]) {
+              correctPrefixCount++;
+            } else {
+              break;
+            }
+          }
+          if (correctPrefixCount > 0 && correctSteps.length > 0) {
+            stepScore = parseFloat(((correctPrefixCount / correctSteps.length) * q.marks).toFixed(1));
+          }
+        }
+        calculatedScore += stepScore;
+        answersRecord[q.id] = {
+          questionId: q.id,
+          placedSteps: studentPlaced,
+          isAutoCorrect: isExactMatch,
+          scoreAwarded: stepScore,
+        };
       } else if (q.type === 'short_answer') {
         const lower = shortAnswerText.toLowerCase();
         let keywordMatches = 0;
@@ -396,6 +461,7 @@ export const LiveAssessmentStudentModal: React.FC = () => {
   const mmcqQuestion = activeLiveAssessment.questions.find((q) => q.type === 'mmcq');
   const matchQuestion = activeLiveAssessment.questions.find((q) => q.type === 'match_following');
   const fillBlanksQuestion = activeLiveAssessment.questions.find((q) => q.type === 'fill_in_blanks');
+  const stepQuestion = activeLiveAssessment.questions.find((q) => q.type === 'step_ordering');
   const shortQuestion = activeLiveAssessment.questions.find((q) => q.type === 'short_answer');
 
   // Ordered column lists for Match the Following
@@ -411,6 +477,16 @@ export const LiveAssessmentStudentModal: React.FC = () => {
   // Fill in the Blanks data
   const blankSlots = fillBlanksQuestion?.blankSlots || [];
   const blankOptions = fillBlanksQuestion?.blankOptions || [];
+
+  // Step Ordering available steps pool (shuffled)
+  const allAvailableSteps = React.useMemo(() => {
+    if (!stepQuestion) return [];
+    const combined = [
+      ...(stepQuestion.orderedSteps || []),
+      ...(stepQuestion.distractorSteps || []),
+    ];
+    return combined;
+  }, [stepQuestion]);
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -1181,6 +1257,162 @@ export const LiveAssessmentStudentModal: React.FC = () => {
                                 Selected
                               </span>
                             ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Question 5: Sequence & Step Ordering */}
+              {stepQuestion && (
+                <div className="space-y-4 p-5 bg-slate-50/80 rounded-2xl border border-indigo-200 shadow-xs">
+                  {/* Header */}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-extrabold uppercase text-indigo-600 tracking-wider">
+                        Sequence & Step Ordering ({stepQuestion.marks} Marks)
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-200 flex items-center gap-1">
+                        <ListOrdered className="w-3 h-3" />
+                        Arrange in Order
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                        {placedSolutionSteps.length} / {stepQuestion.orderedSteps?.length || 0} Items Arranged
+                      </span>
+                      {placedSolutionSteps.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleResetSolutionSteps}
+                          className="text-[11px] font-bold text-slate-500 hover:text-red-600 flex items-center gap-1 transition-colors"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          Reset All
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 leading-snug">{stepQuestion.prompt}</h3>
+                    <div className="flex items-center gap-2 mt-1.5 text-xs text-slate-600 bg-indigo-50/70 p-2.5 rounded-xl border border-indigo-200/70">
+                      <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" />
+                      <p className="leading-tight">
+                        <b>Click "+" on the available items below</b> to arrange them in the correct sequential or chronological order. <b>Beware of incorrect or distractor items!</b>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Arranged Steps Target Area */}
+                  <div className="space-y-2">
+                    <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Your Arranged Sequence:
+                    </span>
+
+                    {placedSolutionSteps.length === 0 ? (
+                      <div className="p-6 border-2 border-dashed border-indigo-200 rounded-2xl bg-indigo-50/30 text-center space-y-1 text-xs text-slate-500">
+                        <p className="font-bold text-indigo-900">No items added to sequence yet</p>
+                        <p className="text-[11px] text-slate-400">
+                          Click any step, paragraph or event from the Available Items pool below to start building your sequence
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {placedSolutionSteps.map((stepText, sIdx) => (
+                          <div
+                            key={sIdx}
+                            className="p-3 bg-white rounded-xl border-2 border-indigo-200 shadow-xs flex items-center justify-between gap-3 text-xs animate-in fade-in"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="w-6 h-6 rounded-lg bg-indigo-600 text-white font-extrabold flex items-center justify-center text-[11px] shrink-0">
+                                {sIdx + 1}
+                              </span>
+                              <span className="font-semibold text-slate-900 leading-snug">
+                                {stepText}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleMoveSolutionStep(sIdx, 'up')}
+                                disabled={sIdx === 0}
+                                className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-30 text-slate-600"
+                                title="Move Up"
+                              >
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleMoveSolutionStep(sIdx, 'down')}
+                                disabled={sIdx === placedSolutionSteps.length - 1}
+                                className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-30 text-slate-600"
+                                title="Move Down"
+                              >
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveSolutionStep(sIdx)}
+                                className="p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                title="Remove Item"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Available Steps Bank */}
+                  <div className="pt-2 border-t border-slate-200 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                        Available Items Pool ({allAvailableSteps.filter((s) => !placedSolutionSteps.includes(s)).length} Available)
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      {allAvailableSteps.map((stepText, stIdx) => {
+                        const isPlaced = placedSolutionSteps.includes(stepText);
+                        const placedIdx = placedSolutionSteps.indexOf(stepText);
+
+                        return (
+                          <div
+                            key={stIdx}
+                            onClick={() => {
+                              if (!isPlaced) handleAddSolutionStep(stepText);
+                            }}
+                            className={`p-2.5 rounded-xl border text-xs transition-all flex items-center justify-between gap-3 ${
+                              isPlaced
+                                ? 'bg-slate-100 border-slate-200 text-slate-400 opacity-60'
+                                : 'bg-white border-slate-200 text-slate-800 hover:border-indigo-400 hover:bg-indigo-50/40 cursor-pointer shadow-2xs hover:shadow-xs'
+                            }`}
+                          >
+                            <span className="font-medium">{stepText}</span>
+
+                            {isPlaced ? (
+                              <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 shrink-0">
+                                ✓ Placed as #{placedIdx + 1}
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-[10px] flex items-center gap-1 shrink-0 shadow-xs"
+                              >
+                                <Plus className="w-3 h-3" />
+                                <span>Add to Order</span>
+                              </button>
+                            )}
                           </div>
                         );
                       })}

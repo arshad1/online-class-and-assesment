@@ -1013,7 +1013,13 @@ export interface CreateOnlineClassFormData {
 // Live In-Class Assessment & Real-time Quiz Types
 // -------------------------------------------------------------
 
-export type LiveAssessmentQuestionType = 'mcq' | 'mmcq' | 'fill_in_blanks' | 'match_following' | 'short_answer';
+export type LiveAssessmentQuestionType =
+  | 'mcq'
+  | 'mmcq'
+  | 'fill_in_blanks'
+  | 'match_following'
+  | 'step_ordering'
+  | 'short_answer';
 
 export interface MatchingPairItem {
   id: string;
@@ -1046,6 +1052,9 @@ export interface LiveAssessmentQuestion {
   // Fill in the Blanks (Drag to Blank) fields
   blankSlots?: BlankSlotItem[];
   blankOptions?: string[];
+  // Step Ordering / Sequence Proof fields (e.g. Maths problem solving steps with distractors)
+  orderedSteps?: string[];
+  distractorSteps?: string[];
   // Short Answer fields
   sampleAnswer?: string;
   keywords?: string[];
@@ -1057,6 +1066,7 @@ export interface LiveStudentAnswer {
   selectedOptionIndices?: number[]; // For MMCQ
   matchedPairs?: Record<string, string>; // leftText/id -> rightText/id
   blankAnswers?: Record<string, string>; // slotId -> droppedOption
+  placedSteps?: string[]; // For Step Ordering
   textAnswer?: string;
   isAutoCorrect?: boolean;
   scoreAwarded?: number;

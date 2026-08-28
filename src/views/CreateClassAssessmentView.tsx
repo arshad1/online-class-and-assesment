@@ -29,6 +29,7 @@ import {
   Shuffle,
   AlertCircle,
   BookOpen,
+  ListOrdered,
 } from 'lucide-react';
 
 export const CreateClassAssessmentView: React.FC = () => {
@@ -219,6 +220,35 @@ export const CreateClassAssessmentView: React.FC = () => {
     addToast('Match the Following Added', 'Add Column A and Column B pair rows.', 'info');
   };
 
+  const handleAddStepOrdering = () => {
+    const newQ: LiveAssessmentQuestion = {
+      id: 'q-step-' + Date.now().toString(36),
+      type: 'step_ordering',
+      prompt:
+        'Arrange the following solution steps in their exact logical sequence (Distractor/incorrect steps are mixed in):',
+      marks: 4,
+      orderedSteps: [
+        'Step 1: Write equation in standard form: 2x² + 5x - 3 = 0',
+        'Step 2: Split middle term using product-sum rule: 2x² + 6x - x - 3 = 0',
+        'Step 3: Group terms to factor out GCF: 2x(x + 3) - 1(x + 3) = 0',
+        'Step 4: Factor the common binomial: (2x - 1)(x + 3) = 0',
+        'Step 5: Apply zero product property: x = 1/2 or x = -3',
+      ],
+      distractorSteps: [
+        'Distractor: Incorrect middle split: 2x² + 3x + 2x - 3 = 0',
+        'Distractor: Incorrect binomial signs: (2x + 1)(x - 3) = 0',
+      ],
+      explanation:
+        'The factors of (2)(-3) = -6 that add up to +5 are +6 and -1. Grouping yields (2x - 1)(x + 3) = 0, giving roots x = 1/2, -3.',
+    };
+    setQuestions((prev) => [...prev, newQ]);
+    addToast(
+      'Step Ordering Added',
+      'Add sequential solution steps and optional distractor/wrong steps.',
+      'info'
+    );
+  };
+
   // Question Management Handlers
   const handleUpdateQuestion = (id: string, updates: Partial<LiveAssessmentQuestion>) => {
     setQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, ...updates } : q)));
@@ -352,6 +382,84 @@ export const CreateClassAssessmentView: React.FC = () => {
     handleUpdateQuestion(qId, {
       matchingPairs: q.matchingPairs.filter((p) => p.id !== pairId),
     });
+  };
+
+  // Step Ordering and Sequence Proof Handlers
+  const handleAddStepOrderingStep = (qId: string) => {
+    const q = questions.find((item) => item.id === qId);
+    if (!q) return;
+    const currentSteps = q.orderedSteps || [];
+    handleUpdateQuestion(qId, {
+      orderedSteps: [
+        ...currentSteps,
+        `Step ${currentSteps.length + 1}: State next logical step or formula transformation...`,
+      ],
+    });
+  };
+
+  const handleUpdateStepOrderingStep = (qId: string, stepIdx: number, text: string) => {
+    const q = questions.find((item) => item.id === qId);
+    if (!q) return;
+    const currentSteps = [...(q.orderedSteps || [])];
+    currentSteps[stepIdx] = text;
+    handleUpdateQuestion(qId, { orderedSteps: currentSteps });
+  };
+
+  const handleRemoveStepOrderingStep = (qId: string, stepIdx: number) => {
+    const q = questions.find((item) => item.id === qId);
+    if (!q || !q.orderedSteps || q.orderedSteps.length <= 2) {
+      addToast('Minimum Steps', 'Step ordering question must have at least 2 sequential steps.', 'warning');
+      return;
+    }
+    const currentSteps = q.orderedSteps.filter((_, idx) => idx !== stepIdx);
+    handleUpdateQuestion(qId, { orderedSteps: currentSteps });
+  };
+
+  const handleMoveStepOrderingStep = (
+    qId: string,
+    stepIdx: number,
+    direction: 'up' | 'down'
+  ) => {
+    const q = questions.find((item) => item.id === qId);
+    if (!q || !q.orderedSteps) return;
+    if (
+      (direction === 'up' && stepIdx === 0) ||
+      (direction === 'down' && stepIdx === q.orderedSteps.length - 1)
+    ) {
+      return;
+    }
+    const newIdx = direction === 'up' ? stepIdx - 1 : stepIdx + 1;
+    const copy = [...q.orderedSteps];
+    const item = copy.splice(stepIdx, 1)[0];
+    copy.splice(newIdx, 0, item);
+    handleUpdateQuestion(qId, { orderedSteps: copy });
+  };
+
+  const handleAddDistractorStep = (qId: string) => {
+    const q = questions.find((item) => item.id === qId);
+    if (!q) return;
+    const currentDistractors = q.distractorSteps || [];
+    handleUpdateQuestion(qId, {
+      distractorSteps: [
+        ...currentDistractors,
+        `Distractor: Incorrect formula split, inverted sign, or false deduction...`,
+      ],
+    });
+  };
+
+  const handleUpdateDistractorStep = (qId: string, distIdx: number, text: string) => {
+    const q = questions.find((item) => item.id === qId);
+    if (!q) return;
+    const currentDistractors = [...(q.distractorSteps || [])];
+    currentDistractors[distIdx] = text;
+    handleUpdateQuestion(qId, { distractorSteps: currentDistractors });
+  };
+
+  const handleRemoveDistractorStep = (qId: string, distIdx: number) => {
+    const q = questions.find((item) => item.id === qId);
+    if (!q || !q.distractorSteps) return;
+    const currentDistractors = q.distractorSteps.filter((_, idx) => idx !== distIdx);
+    handleUpdateQuestion(qId, { distractorSteps: currentDistractors });
   };
 
   // Save Handlers
@@ -573,14 +681,14 @@ export const CreateClassAssessmentView: React.FC = () => {
         </div>
       </div>
 
-      {/* Add Question Button Banner - 4 Question Types */}
+      {/* Add Question Button Banner - 5 Question Types */}
       <div className="p-4 bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl shadow-lg space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-amber-300" />
             <div>
               <h3 className="text-sm font-extrabold text-white">Add Questions to Assessment</h3>
-              <p className="text-xs text-slate-300">Choose from 4 interactive question types</p>
+              <p className="text-xs text-slate-300">Choose from 5 interactive question formats</p>
             </div>
           </div>
           <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-slate-200 font-bold">
@@ -588,7 +696,7 @@ export const CreateClassAssessmentView: React.FC = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
           {/* Add MCQ */}
           <button
             type="button"
@@ -640,6 +748,19 @@ export const CreateClassAssessmentView: React.FC = () => {
             </div>
             <span className="text-[10px] text-amber-200 font-medium">Column A to Column B pairs</span>
           </button>
+
+          {/* Add Step Ordering / Jumbled Steps */}
+          <button
+            type="button"
+            onClick={handleAddStepOrdering}
+            className="p-3 rounded-2xl bg-indigo-600/90 hover:bg-indigo-600 border border-indigo-400/30 text-white flex flex-col items-start gap-1 transition-all transform hover:-translate-y-0.5 shadow-md shadow-indigo-500/20 col-span-2 sm:col-span-1"
+          >
+            <div className="flex items-center gap-1.5 font-black text-xs">
+              <Plus className="w-4 h-4" />
+              <span>Sequence Ordering</span>
+            </div>
+            <span className="text-[10px] text-indigo-200 font-medium">Paragraphs, steps & events</span>
+          </button>
         </div>
       </div>
 
@@ -648,15 +769,16 @@ export const CreateClassAssessmentView: React.FC = () => {
         {questions.map((q, idx) => (
           <div
             key={q.id}
-            className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 space-y-4 relative transition-all"
+            className="p-6 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4 text-slate-900 transition-all hover:border-slate-300"
           >
             {/* Question Card Top Bar */}
-            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2.5 py-1 rounded-lg bg-slate-900 text-white text-xs font-black">
-                  Q{idx + 1}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-xl bg-slate-900 text-white text-xs font-black flex items-center justify-center">
+                  {idx + 1}
                 </span>
 
+                {/* Question Type Tag */}
                 {q.type === 'mcq' && (
                   <span className="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 border border-blue-200 text-xs font-extrabold">
                     MCQ (Single Choice)
@@ -675,6 +797,12 @@ export const CreateClassAssessmentView: React.FC = () => {
                 {q.type === 'match_following' && (
                   <span className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 border border-amber-200 text-xs font-extrabold">
                     Match the Following
+                  </span>
+                )}
+                {q.type === 'step_ordering' && (
+                  <span className="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800 border border-indigo-200 text-xs font-extrabold flex items-center gap-1">
+                    <ListOrdered className="w-3.5 h-3.5" />
+                    Sequence & Step Ordering
                   </span>
                 )}
               </div>
@@ -736,23 +864,25 @@ export const CreateClassAssessmentView: React.FC = () => {
             </div>
 
             {/* Question Prompt */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">Question Prompt</label>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Question Statement / Instructions Prompt
+              </label>
               <textarea
                 rows={2}
                 value={q.prompt}
                 onChange={(e) => handleUpdateQuestion(q.id, { prompt: e.target.value })}
-                placeholder="Enter the question text or problem statement..."
-                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                placeholder="Enter question statement, instructions, or scenario description..."
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            {/* 1. MCQ OPTIONS BUILDER */}
+            {/* 1. MCQ BUILDER */}
             {q.type === 'mcq' && (
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2 pt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-700">
-                    Option Choices (Select Radio Button for Correct Answer)
+                    Multiple Choice Options (Select radio for correct answer)
                   </span>
                   <button
                     type="button"
@@ -765,47 +895,41 @@ export const CreateClassAssessmentView: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  {q.options?.map((opt, oIdx) => {
-                    const isCorrect = q.correctOptionIndex === oIdx;
+                  {q.options?.map((opt, optIdx) => {
+                    const isCorrect = q.correctOptionIndex === optIdx;
                     return (
                       <div
-                        key={oIdx}
-                        className={`p-2.5 rounded-2xl border flex items-center gap-3 transition-all ${
+                        key={optIdx}
+                        className={`p-2.5 rounded-xl border flex items-center gap-3 transition-all ${
                           isCorrect
-                            ? 'bg-blue-50/80 border-blue-400 ring-2 ring-blue-500/10'
+                            ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-400'
                             : 'bg-slate-50 border-slate-200'
                         }`}
                       >
                         <input
                           type="radio"
-                          name={`correct-mcq-${q.id}`}
+                          name={`correct-${q.id}`}
                           checked={isCorrect}
-                          onChange={() => handleUpdateQuestion(q.id, { correctOptionIndex: oIdx })}
-                          className="w-4 h-4 text-blue-600 cursor-pointer"
+                          onChange={() => handleUpdateQuestion(q.id, { correctOptionIndex: optIdx })}
+                          className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                         />
-                        <span className="text-xs font-black text-slate-500 w-6">
-                          {String.fromCharCode(65 + oIdx)}.
+                        <span className="w-5 text-xs font-bold text-slate-500">
+                          {String.fromCharCode(65 + optIdx)})
                         </span>
                         <input
                           type="text"
                           value={opt}
                           onChange={(e) => {
                             const copy = [...(q.options || [])];
-                            copy[oIdx] = e.target.value;
+                            copy[optIdx] = e.target.value;
                             handleUpdateQuestion(q.id, { options: copy });
                           }}
-                          className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        {isCorrect && (
-                          <span className="text-[10px] font-black uppercase text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
-                            Correct Answer
-                          </span>
-                        )}
                         <button
                           type="button"
-                          onClick={() => handleRemoveOption(q.id, oIdx)}
+                          onClick={() => handleRemoveOption(q.id, optIdx)}
                           className="p-1 text-slate-400 hover:text-red-500"
-                          title="Remove option"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -816,17 +940,17 @@ export const CreateClassAssessmentView: React.FC = () => {
               </div>
             )}
 
-            {/* 2. MMCQ OPTIONS BUILDER (Multiple Correct) */}
+            {/* 2. MMCQ BUILDER */}
             {q.type === 'mmcq' && (
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2 pt-2">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-xs font-bold text-slate-700">
-                      MMCQ Choices (Check All Valid Correct Answers)
+                      Multi-Select Options (Check boxes for ALL correct answers)
                     </span>
-                    <p className="text-[10px] text-purple-700 font-semibold">
-                      Students must select all checked options for full score.
-                    </p>
+                    <span className="text-[10px] text-purple-700 font-semibold block">
+                      {q.correctOptionIndices?.length || 0} Correct options selected
+                    </span>
                   </div>
                   <button
                     type="button"
@@ -834,49 +958,44 @@ export const CreateClassAssessmentView: React.FC = () => {
                     className="text-xs text-purple-600 font-bold hover:text-purple-700 flex items-center gap-1"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>Add Option</span>
+                    <span>Add Choice</span>
                   </button>
                 </div>
 
                 <div className="space-y-2">
-                  {q.options?.map((opt, oIdx) => {
-                    const isCorrect = q.correctOptionIndices?.includes(oIdx);
+                  {q.options?.map((opt, optIdx) => {
+                    const isCorrect = q.correctOptionIndices?.includes(optIdx) || false;
                     return (
                       <div
-                        key={oIdx}
-                        className={`p-2.5 rounded-2xl border flex items-center gap-3 transition-all ${
+                        key={optIdx}
+                        className={`p-2.5 rounded-xl border flex items-center gap-3 transition-all ${
                           isCorrect
-                            ? 'bg-purple-50/80 border-purple-400 ring-2 ring-purple-500/10'
+                            ? 'bg-purple-50 border-purple-500 ring-1 ring-purple-400'
                             : 'bg-slate-50 border-slate-200'
                         }`}
                       >
                         <input
                           type="checkbox"
                           checked={isCorrect}
-                          onChange={() => handleToggleMMCQCorrect(q.id, oIdx)}
-                          className="w-4 h-4 rounded text-purple-600 cursor-pointer focus:ring-purple-500"
+                          onChange={() => handleToggleMMCQCorrect(q.id, optIdx)}
+                          className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
                         />
-                        <span className="text-xs font-black text-slate-500 w-6">
-                          {String.fromCharCode(65 + oIdx)}.
+                        <span className="w-5 text-xs font-bold text-slate-500">
+                          {String.fromCharCode(65 + optIdx)})
                         </span>
                         <input
                           type="text"
                           value={opt}
                           onChange={(e) => {
                             const copy = [...(q.options || [])];
-                            copy[oIdx] = e.target.value;
+                            copy[optIdx] = e.target.value;
                             handleUpdateQuestion(q.id, { options: copy });
                           }}
-                          className="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="flex-1 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
                         />
-                        {isCorrect && (
-                          <span className="text-[10px] font-black uppercase text-purple-800 bg-purple-100 px-2 py-0.5 rounded-md">
-                            Correct Choice
-                          </span>
-                        )}
                         <button
                           type="button"
-                          onClick={() => handleRemoveOption(q.id, oIdx)}
+                          onClick={() => handleRemoveOption(q.id, optIdx)}
                           className="p-1 text-slate-400 hover:text-red-500"
                         >
                           <X className="w-4 h-4" />
@@ -893,7 +1012,7 @@ export const CreateClassAssessmentView: React.FC = () => {
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-700">
-                    Blank Slots Manager (Prefix, Correct Answer & Suffix)
+                    Blank Slots Manager (Prefix + Correct Drop Answer + Suffix)
                   </span>
                   <button
                     type="button"
@@ -909,16 +1028,16 @@ export const CreateClassAssessmentView: React.FC = () => {
                   {q.blankSlots?.map((slot, sIdx) => (
                     <div
                       key={slot.id}
-                      className="p-3 bg-emerald-50/40 rounded-2xl border border-emerald-200 space-y-2"
+                      className="p-3 bg-emerald-50/40 rounded-2xl border border-emerald-200 space-y-2 text-xs"
                     >
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-extrabold text-emerald-900">
-                          {slot.label || `Blank ${sIdx + 1}`}
+                      <div className="flex items-center justify-between">
+                        <span className="font-extrabold text-emerald-800">
+                          {slot.label || `Blank #${sIdx + 1}`}
                         </span>
                         <button
                           type="button"
                           onClick={() => handleRemoveBlankSlot(q.id, slot.id)}
-                          className="text-slate-400 hover:text-red-600"
+                          className="p-1 text-slate-400 hover:text-red-500"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -926,8 +1045,8 @@ export const CreateClassAssessmentView: React.FC = () => {
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-600 mb-1">
-                            Sentence Prefix Text
+                          <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
+                            Prefix (Text before blank)
                           </label>
                           <input
                             type="text"
@@ -938,13 +1057,13 @@ export const CreateClassAssessmentView: React.FC = () => {
                               );
                               handleUpdateQuestion(q.id, { blankSlots: updatedSlots });
                             }}
-                            className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-900"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-bold text-emerald-800 mb-1">
-                            Correct Answer Term <span className="text-red-500">*</span>
+                          <label className="block text-[10px] font-bold text-emerald-800 mb-0.5">
+                            ★ Correct Answer (Target)
                           </label>
                           <input
                             type="text"
@@ -955,13 +1074,13 @@ export const CreateClassAssessmentView: React.FC = () => {
                               );
                               handleUpdateQuestion(q.id, { blankSlots: updatedSlots });
                             }}
-                            className="w-full px-2.5 py-1.5 bg-emerald-100 border border-emerald-400 rounded-lg text-xs font-black text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            className="w-full px-2.5 py-1.5 bg-emerald-100 border border-emerald-400 rounded-lg text-xs font-bold text-emerald-950"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-600 mb-1">
-                            Sentence Suffix Text
+                          <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
+                            Suffix (Text after blank)
                           </label>
                           <input
                             type="text"
@@ -972,7 +1091,7 @@ export const CreateClassAssessmentView: React.FC = () => {
                               );
                               handleUpdateQuestion(q.id, { blankSlots: updatedSlots });
                             }}
-                            className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-900"
                           />
                         </div>
                       </div>
@@ -1069,6 +1188,153 @@ export const CreateClassAssessmentView: React.FC = () => {
                       </button>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* 5. SEQUENCE & STEP ORDERING BUILDER (Universal for all subjects) */}
+            {q.type === 'step_ordering' && (
+              <div className="space-y-4 pt-2">
+                {/* Correct Sequential Steps */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <ListOrdered className="w-4 h-4 text-indigo-600" />
+                        Correct Sequence / Paragraph Order (#1 to #{q.orderedSteps?.length || 0})
+                      </span>
+                      <p className="text-[10px] text-slate-500">
+                        Enter the correct chronological/logical sequence (paragraphs, solution steps, scientific processes, historical timeline, algorithm steps, etc.)
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleAddStepOrderingStep(q.id)}
+                      className="text-xs text-indigo-600 font-bold hover:text-indigo-700 flex items-center gap-1 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Add Step / Paragraph</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {q.orderedSteps?.map((stepText, sIdx) => (
+                      <div
+                        key={sIdx}
+                        className="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-200 flex items-center gap-2.5 text-xs"
+                      >
+                        <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white font-extrabold flex items-center justify-center text-xs shrink-0 shadow-xs">
+                          #{sIdx + 1}
+                        </div>
+
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            value={stepText}
+                            onChange={(e) =>
+                              handleUpdateStepOrderingStep(q.id, sIdx, e.target.value)
+                            }
+                            placeholder={`Item / Step ${sIdx + 1}: Enter paragraph, sentence, step, or equation...`}
+                            className="w-full px-3 py-1.5 bg-white border border-indigo-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+
+                        {/* Step Move Up/Down and Delete */}
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleMoveStepOrderingStep(q.id, sIdx, 'up')}
+                            disabled={sIdx === 0}
+                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-white disabled:opacity-30 text-slate-600"
+                            title="Move Up"
+                          >
+                            <ChevronUp className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleMoveStepOrderingStep(q.id, sIdx, 'down')}
+                            disabled={sIdx === (q.orderedSteps?.length || 0) - 1}
+                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-white disabled:opacity-30 text-slate-600"
+                            title="Move Down"
+                          >
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveStepOrderingStep(q.id, sIdx)}
+                            className="p-1.5 text-slate-400 hover:text-red-500"
+                            title="Delete Item"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Distractor (Incorrect / Confusing Steps) */}
+                <div className="p-3.5 bg-amber-50/50 rounded-2xl border border-amber-200 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                        Distractor / False Choices (Optional — to test & challenge students)
+                      </span>
+                      <p className="text-[10px] text-amber-800/80">
+                        Students must identify and avoid selecting these wrong steps, false paragraphs, or irrelevant events.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleAddDistractorStep(q.id)}
+                      className="text-xs text-amber-800 font-bold hover:text-amber-900 flex items-center gap-1 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Add Distractor</span>
+                    </button>
+                  </div>
+
+                  {(!q.distractorSteps || q.distractorSteps.length === 0) ? (
+                    <p className="text-xs text-amber-700 italic bg-white/70 p-2.5 rounded-xl border border-amber-200">
+                      No distractors added yet. Click "+ Add Distractor" to add wrong choices or false paragraphs.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {q.distractorSteps.map((distText, dIdx) => (
+                        <div
+                          key={dIdx}
+                          className="p-2.5 bg-white rounded-xl border border-amber-200 flex items-center gap-2 text-xs"
+                        >
+                          <span className="font-extrabold text-amber-700 px-2 py-0.5 bg-amber-100 rounded text-[10px] shrink-0">
+                            Distractor #{dIdx + 1}
+                          </span>
+
+                          <input
+                            type="text"
+                            value={distText}
+                            onChange={(e) =>
+                              handleUpdateDistractorStep(q.id, dIdx, e.target.value)
+                            }
+                            placeholder="Enter distractor step, irrelevant paragraph, or false conclusion..."
+                            className="flex-1 px-2.5 py-1 bg-amber-50/40 border border-amber-300 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                          />
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDistractorStep(q.id, dIdx)}
+                            className="p-1 text-slate-400 hover:text-red-500"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1243,6 +1509,43 @@ export const CreateClassAssessmentView: React.FC = () => {
                           </select>
                         </div>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Step Ordering Preview */}
+                  {q.type === 'step_ordering' && q.orderedSteps && (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-white rounded-xl border border-indigo-200 space-y-2">
+                        <span className="text-[11px] font-bold text-indigo-900 block">
+                          📝 Arrange Solution Steps in Logical Order:
+                        </span>
+                        <div className="space-y-1.5">
+                          {q.orderedSteps.map((step, sIdx) => (
+                            <div
+                              key={sIdx}
+                              className="p-2 bg-indigo-50/60 rounded-lg border border-indigo-100 flex items-center gap-2 text-xs text-slate-800"
+                            >
+                              <span className="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px] shrink-0">
+                                {sIdx + 1}
+                              </span>
+                              <span className="font-medium">{step}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {q.distractorSteps && q.distractorSteps.length > 0 && (
+                        <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-xs">
+                          <span className="font-bold text-amber-900 block mb-1">
+                            ⚠️ Distractor Steps (Mixed into pool to challenge students):
+                          </span>
+                          <ul className="list-disc list-inside text-amber-800 text-[11px] space-y-0.5">
+                            {q.distractorSteps.map((d, dIdx) => (
+                              <li key={dIdx}>{d}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
